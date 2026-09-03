@@ -75,3 +75,71 @@ export async function updateAppointmentStatus(appointmentId: string, status: str
   await supabase.from("appointments").update({ status }).eq("id", appointmentId);
   revalidatePath("/agenda");
 }
+
+const updateSchema = schema.extend({
+  appointment_id: z.string().uuid(),
+});
+
+export async function updateAppointment(
+  _prevState: { error: string | null; saved: boolean },
+  formData: FormData
+) {
+  await requireUser();
+
+  const parsed = updateSchema.safeParse({
+    appointment_id: formData.get("appointment_id"),
+    patient_id: formData.get("patient_id"),
+    professional_id: formData.get("professional_id"),
+    room_id: formData.get("room_id"),
+    date: formData.get("date"),
+    time: formData.get("time"),
+    duration_min: formData.get("duration_min"),
+    type: formData.get("type"),
+    notes: formData.get("notes") || undefined,
+  });
+
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Dados inválidos.", saved: false };
+  }
+
+  const supabase = await createClient();
+  const starts_at = new Date(`${parsed.data.date}T${parsed.data.time}:00`).toISOString();
+
+  const { error } = await supabase
+    .from("appointments")
+    .update({
+      patient_id: parsed.data.patient_id,
+      professional_id: parsed.data.professional_id,
+      room_id: parsed.data.room_id,
+      starts_at,
+      duration_min: parsed.data.duration_min,
+      type: parsed.data.type,
+      notes: parsed.data.notes || null,
+    })
+    .eq("id", parsed.data.appointment_id);
+
+  if (error) {
+    if (error.code === "23P01") {
+      return {
+        error: "Conflito de agenda: a sala ou o profissional já têm uma consulta nesse horário.",
+        saved: false,
+      };
+    }
+    return { error: "Não foi possível guardar a consulta. " + error.message, saved: false };
+  }
+
+  revalidatePath("/agenda");
+  return { error: null, saved: true };
+}
+
+export async function deleteAppointment(appointmentId: string) {
+  await requireUser();
+  const supabase = await createClient();
+  // payments.appointment_id não tem cascade — desligar antes de apagar.
+  await supabase
+    .from("payments")
+    .update({ appointment_id: null })
+    .eq("appointment_id", appointmentId);
+  await supabase.from("appointments").delete().eq("id", appointmentId);
+  revalidatePath("/agenda");
+}

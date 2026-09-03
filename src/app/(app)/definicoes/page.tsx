@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { InviteUserForm } from "./invite-user-form";
 import { UserRow } from "./user-row";
+import { ProfessionalsSection } from "./professionals-section";
 import type { UserProfile } from "@/types/database";
 
 export default async function DefinicoesPage() {
@@ -10,12 +11,18 @@ export default async function DefinicoesPage() {
   const isAdmin = profile.role === "admin";
 
   const supabase = await createClient();
-  const { data: users } = isAdmin
-    ? await supabase.from("users").select("*").order("full_name")
-    : { data: null };
+  const [{ data: users }, { data: professionals }] = isAdmin
+    ? await Promise.all([
+        supabase.from("users").select("*").order("full_name"),
+        supabase
+          .from("professionals")
+          .select("id, specialty, license_number, color_hex, users(full_name, email, active)")
+          .order("created_at"),
+      ])
+    : [{ data: null }, { data: null }];
 
   return (
-    <div className="p-8 max-w-4xl">
+    <div className="p-8 max-w-5xl">
       <h1 className="text-2xl font-semibold mb-6">Definições</h1>
 
       <div className={isAdmin ? "grid grid-cols-3 gap-6" : "max-w-2xl"}>
@@ -60,15 +67,31 @@ export default async function DefinicoesPage() {
               </CardContent>
             </Card>
           )}
-
-          <p className="text-[12.5px] text-foreground-faint">
-            Exportação/eliminação de dados de pacientes (RGPD) e logout automático por
-            inatividade — planeado.
-          </p>
         </div>
 
         {isAdmin && <InviteUserForm />}
       </div>
+
+      {isAdmin && (
+        <div className="mt-6">
+          <ProfessionalsSection
+            professionals={
+              (professionals as unknown as {
+                id: string;
+                specialty: string | null;
+                license_number: string | null;
+                color_hex: string;
+                users?: { full_name: string; email: string; active: boolean } | null;
+              }[]) ?? []
+            }
+          />
+        </div>
+      )}
+
+      <p className="text-[12.5px] text-foreground-faint mt-6">
+        Exportação/eliminação de dados de pacientes (RGPD) e logout automático por inatividade —
+        planeado.
+      </p>
     </div>
   );
 }
