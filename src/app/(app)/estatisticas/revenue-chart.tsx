@@ -38,7 +38,13 @@ export function RevenueChart({
           <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8 }} />
           <Legend wrapperStyle={{ fontSize: 12 }} />
           {clinicNames.map((name, i) => (
-            <Bar key={name} dataKey={name} stackId="revenue" fill={colors[i % colors.length]} />
+            <Bar
+              key={name}
+              dataKey={name}
+              stackId="revenue"
+              fill={colors[i % colors.length]}
+              isAnimationActive={false}
+            />
           ))}
         </BarChart>
       </ResponsiveContainer>
