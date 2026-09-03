@@ -26,6 +26,13 @@ export function ClinicRow({ clinic }: { clinic: Clinic }) {
       <li className="px-5 py-3">
         <form action={formAction} className="flex items-center gap-3">
           <input type="hidden" name="clinic_id" value={clinic.id} />
+          <input
+            type="color"
+            name="color_hex"
+            defaultValue={clinic.color_hex}
+            className="h-10 w-10 shrink-0 rounded-md border border-line"
+            title="Cor na agenda"
+          />
           <Input name="name" defaultValue={clinic.name} placeholder="Nome" className="flex-1" required />
           <Input name="nif" defaultValue={clinic.nif ?? ""} placeholder="NIF" className="w-36" />
           <Button type="submit" size="sm" disabled={pending}>
@@ -42,9 +49,16 @@ export function ClinicRow({ clinic }: { clinic: Clinic }) {
 
   return (
     <li className="flex items-center justify-between px-5 py-3">
-      <Link href={`/clinicas/${clinic.id}`} className="min-w-0">
-        <p className="text-sm font-medium hover:text-accent-ink">{clinic.name}</p>
-        {clinic.nif && <p className="text-[12.5px] text-foreground-faint">NIF {clinic.nif}</p>}
+      <Link href={`/clinicas/${clinic.id}`} className="flex min-w-0 items-center gap-2.5">
+        <span
+          className="h-3 w-3 shrink-0 rounded-full"
+          style={{ backgroundColor: clinic.color_hex }}
+          title="Cor na agenda"
+        />
+        <span>
+          <p className="text-sm font-medium hover:text-accent-ink">{clinic.name}</p>
+          {clinic.nif && <p className="text-[12.5px] text-foreground-faint">NIF {clinic.nif}</p>}
+        </span>
       </Link>
       <div className="flex items-center gap-3">
         <Badge tone={clinic.active ? "accent" : "neutral"}>

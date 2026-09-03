@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { requireUser } from "@/lib/auth";
-import { getActiveClinicId } from "@/lib/clinic";
 import { Button } from "@/components/ui/button";
 import { NovaConsultaForm } from "./form";
 import { DayView } from "./day-view";
@@ -42,9 +41,11 @@ export default async function AgendaPage({
 
   const supabase = await createClient();
 
-  // Fase 1 — tudo o que não depende de nada mais, em paralelo.
-  const [activeClinicId, { data: professionals }, ownProfResult] = await Promise.all([
-    getActiveClinicId(),
+  // A agenda é única (todas as clínicas juntas — só há um profissional a
+  // trabalhar em todas), por isso não filtra por clínica ativa. Só exclui
+  // pacientes/espaços de clínicas inativas.
+  const [{ data: clinics }, { data: professionals }, ownProfResult] = await Promise.all([
+    supabase.from("clinics").select("id, name, color_hex").eq("active", true).order("created_at"),
     supabase.from("professionals").select("id, users(full_name)").eq("active", true),
     profile.role === "professional"
       ? supabase.from("professionals").select("id").eq("user_id", profile.id).single()
@@ -52,26 +53,28 @@ export default async function AgendaPage({
   ]);
   const ownProfessionalId = ownProfResult.data?.id ?? null;
 
-  // Fase 2 — depende da clínica ativa e (se profissional) do próprio id.
   let apptQuery = supabase
     .from("appointments")
-    .select("*, patients(id, full_name), professionals(id, color_hex, users(full_name)), rooms(id, name)")
+    .select(
+      "*, patients(id, full_name), professionals(id, color_hex, users(full_name)), rooms(id, name), clinics(id, name, color_hex), payments(id, amount)"
+    )
     .gte("starts_at", start.toISOString())
     .lt("starts_at", end.toISOString())
     .order("starts_at");
-  let patientsQuery = supabase.from("patients").select("id, full_name").order("full_name");
-  let roomsQuery = supabase.from("rooms").select("id, name").eq("active", true).order("name");
-
-  if (activeClinicId) {
-    apptQuery = apptQuery.eq("clinic_id", activeClinicId);
-    patientsQuery = patientsQuery.eq("clinic_id", activeClinicId);
-    roomsQuery = roomsQuery.eq("clinic_id", activeClinicId);
-  }
   if (ownProfessionalId) apptQuery = apptQuery.eq("professional_id", ownProfessionalId);
 
   const [{ data: patients }, { data: rooms }, { data: appointments }] = await Promise.all([
-    patientsQuery,
-    roomsQuery,
+    supabase
+      .from("patients")
+      .select("id, full_name, clinic_id, clinics!inner(active)")
+      .eq("clinics.active", true)
+      .order("full_name"),
+    supabase
+      .from("rooms")
+      .select("id, name, clinic_id, clinics!inner(active)")
+      .eq("active", true)
+      .eq("clinics.active", true)
+      .order("name"),
     apptQuery,
   ]);
   const list = (appointments as unknown as Appointment[]) ?? [];
@@ -116,20 +119,26 @@ export default async function AgendaPage({
               appointments={list}
               patients={patients ?? []}
               rooms={rooms ?? []}
+              clinics={clinics ?? []}
               professionals={
                 (professionals as unknown as { id: string; users: { full_name: string } }[]) ?? []
               }
               isAdmin={profile.role === "admin"}
             />
           )}
-          {view === "week" && <WeekView weekStart={start} appointments={list} />}
-          {view === "month" && <MonthView monthDate={refDate} appointments={list} />}
+          {view === "week" && (
+            <WeekView weekStart={start} appointments={list} clinics={clinics ?? []} />
+          )}
+          {view === "month" && (
+            <MonthView monthDate={refDate} appointments={list} clinics={clinics ?? []} />
+          )}
         </div>
 
         <NovaConsultaForm
           date={dateStr}
           patients={patients ?? []}
           rooms={rooms ?? []}
+          clinics={clinics ?? []}
           professionals={
             (professionals as unknown as { id: string; users: { full_name: string } }[]) ?? []
           }

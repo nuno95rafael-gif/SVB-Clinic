@@ -23,6 +23,7 @@ export interface Clinic {
   name: string;
   nif: string | null;
   timezone: string;
+  color_hex: string;
   active: boolean;
   created_at: string;
 }
@@ -114,6 +115,8 @@ export interface Appointment {
   patients?: Pick<Patient, "id" | "full_name">;
   professionals?: Professional;
   rooms?: Pick<Room, "id" | "name">;
+  clinics?: Pick<Clinic, "id" | "name" | "color_hex">;
+  payments?: Pick<Payment, "id" | "amount">[];
 }
 
 export interface Payment {

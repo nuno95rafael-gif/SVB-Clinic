@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { cn, formatTime } from "@/lib/utils";
 import { getMonthGridDays, isSameDate, isSameMonthAs, toISODate } from "./date-utils";
+import { ClinicLegend } from "./clinic-legend";
 import type { Appointment } from "@/types/database";
 
 const DAY_LABELS = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
@@ -10,15 +11,18 @@ const MAX_VISIBLE = 3;
 export function MonthView({
   monthDate,
   appointments,
+  clinics,
 }: {
   monthDate: Date;
   appointments: Appointment[];
+  clinics: { id: string; name: string; color_hex: string }[];
 }) {
   const days = getMonthGridDays(monthDate);
   const today = new Date();
 
   return (
     <Card className="overflow-hidden">
+      <ClinicLegend clinics={clinics} />
       <div className="grid grid-cols-7 border-b border-line">
         {DAY_LABELS.map((l) => (
           <div
@@ -64,8 +68,8 @@ export function MonthView({
                     href={`/consultas/${a.id}`}
                     className="block truncate rounded px-1 py-0.5 text-[11px] leading-tight hover:opacity-80"
                     style={{
-                      backgroundColor: `${a.professionals?.color_hex ?? "#0d7a68"}1a`,
-                      borderLeft: `2px solid ${a.professionals?.color_hex ?? "#0d7a68"}`,
+                      backgroundColor: `${a.clinics?.color_hex ?? "#0d7a68"}1a`,
+                      borderLeft: `2px solid ${a.clinics?.color_hex ?? "#0d7a68"}`,
                     }}
                   >
                     {formatTime(a.starts_at)} {a.patients?.full_name}

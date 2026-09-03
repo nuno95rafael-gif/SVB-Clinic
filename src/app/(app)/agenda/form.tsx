@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useRef } from "react";
+import { useActionState, useMemo, useRef, useState } from "react";
 import { createAppointment } from "./actions";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Select } from "@/components/ui/input";
@@ -12,13 +12,15 @@ export function NovaConsultaForm({
   date,
   patients,
   rooms,
+  clinics,
   professionals,
   isAdmin,
   ownProfessionalId,
 }: {
   date: string;
-  patients: { id: string; full_name: string }[];
-  rooms: { id: string; name: string }[];
+  patients: { id: string; full_name: string; clinic_id: string }[];
+  rooms: { id: string; name: string; clinic_id: string }[];
+  clinics: { id: string; name: string; color_hex: string }[];
   professionals: { id: string; users: { full_name: string } }[];
   isAdmin: boolean;
   ownProfessionalId: string | null;
@@ -33,6 +35,13 @@ export function NovaConsultaForm({
   const dateRef = useRef<HTMLInputElement>(null);
   const timeRef = useRef<HTMLInputElement>(null);
   const startsAtRef = useRef<HTMLInputElement>(null);
+  const [clinicId, setClinicId] = useState(clinics[0]?.id ?? "");
+
+  const clinicPatients = useMemo(
+    () => patients.filter((p) => p.clinic_id === clinicId),
+    [patients, clinicId]
+  );
+  const clinicRooms = useMemo(() => rooms.filter((r) => r.clinic_id === clinicId), [rooms, clinicId]);
 
   return (
     <Card>
@@ -50,12 +59,30 @@ export function NovaConsultaForm({
           className="space-y-3"
         >
           <input type="hidden" name="starts_at" ref={startsAtRef} />
+
+          <div>
+            <Label htmlFor="clinic_id">Clínica</Label>
+            <Select
+              id="clinic_id"
+              name="clinic_id"
+              required
+              value={clinicId}
+              onChange={(e) => setClinicId(e.target.value)}
+            >
+              {clinics.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </Select>
+          </div>
+
           <div>
             <Label htmlFor="date">Data</Label>
             <Input id="date" ref={dateRef} type="date" defaultValue={date} required />
           </div>
 
-          <PatientCombobox patients={patients} name="patient_id" />
+          <PatientCombobox key={clinicId} patients={clinicPatients} name="patient_id" />
 
           <div>
             <Label htmlFor="professional_id">Profissional</Label>
@@ -82,11 +109,11 @@ export function NovaConsultaForm({
 
           <div>
             <Label htmlFor="room_id">Espaço</Label>
-            <Select id="room_id" name="room_id" required defaultValue="">
+            <Select key={clinicId} id="room_id" name="room_id" required defaultValue="">
               <option value="" disabled>
                 Selecionar…
               </option>
-              {rooms.map((r) => (
+              {clinicRooms.map((r) => (
                 <option key={r.id} value={r.id}>
                   {r.name}
                 </option>
@@ -105,13 +132,19 @@ export function NovaConsultaForm({
             </div>
           </div>
 
-          <div>
-            <Label htmlFor="type">Tipo</Label>
-            <Select id="type" name="type" defaultValue="consulta">
-              <option value="consulta">Consulta</option>
-              <option value="avaliacao">Avaliação inicial</option>
-              <option value="reavaliacao">Reavaliação</option>
-            </Select>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label htmlFor="type">Tipo</Label>
+              <Select id="type" name="type" defaultValue="consulta">
+                <option value="consulta">Consulta</option>
+                <option value="avaliacao">Avaliação inicial</option>
+                <option value="reavaliacao">Reavaliação</option>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="amount">Valor (€)</Label>
+              <Input id="amount" name="amount" type="number" min={0} step={0.01} placeholder="Opcional" />
+            </div>
           </div>
 
           {state.error && (

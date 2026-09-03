@@ -39,13 +39,14 @@ export async function updateClinic(
   const clinicId = String(formData.get("clinic_id") || "");
   const name = String(formData.get("name") || "").trim();
   const nif = String(formData.get("nif") || "").trim();
+  const colorHex = String(formData.get("color_hex") || "#0d7a68");
   if (!clinicId) return { error: "Clínica inválida.", saved: false };
   if (!name) return { error: "Indique o nome da clínica.", saved: false };
 
   const supabase = await createClient();
   const { error } = await supabase
     .from("clinics")
-    .update({ name, nif: nif || null })
+    .update({ name, nif: nif || null, color_hex: colorHex })
     .eq("id", clinicId);
 
   if (error) return { error: "Não foi possível guardar. " + error.message, saved: false };

@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState, useTransition } from "react";
+import { useActionState, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { Pencil, Trash2, Stethoscope } from "lucide-react";
 import Link from "next/link";
 import { updateAppointment, deleteAppointment } from "./actions";
@@ -19,12 +19,14 @@ export function AppointmentRow({
   appointment: a,
   patients,
   rooms,
+  clinics,
   professionals,
   isAdmin,
 }: {
   appointment: Appointment;
-  patients: { id: string; full_name: string }[];
-  rooms: { id: string; name: string }[];
+  patients: { id: string; full_name: string; clinic_id: string }[];
+  rooms: { id: string; name: string; clinic_id: string }[];
+  clinics: { id: string; name: string; color_hex: string }[];
   professionals: { id: string; users?: { full_name: string } }[];
   isAdmin: boolean;
 }) {
@@ -43,6 +45,15 @@ export function AppointmentRow({
   const dateRef = useRef<HTMLInputElement>(null);
   const timeRef = useRef<HTMLInputElement>(null);
   const startsAtRef = useRef<HTMLInputElement>(null);
+  const [clinicId, setClinicId] = useState(a.clinic_id);
+  // numeric(10,2) vem do Postgres como string via PostgREST.
+  const currentAmount = a.payments?.[0]?.amount != null ? Number(a.payments[0].amount) : undefined;
+
+  const clinicPatients = useMemo(
+    () => patients.filter((p) => p.clinic_id === clinicId),
+    [patients, clinicId]
+  );
+  const clinicRooms = useMemo(() => rooms.filter((r) => r.clinic_id === clinicId), [rooms, clinicId]);
 
   if (editing) {
     return (
@@ -61,15 +72,40 @@ export function AppointmentRow({
 
           <div className="grid grid-cols-2 gap-2.5">
             <div>
+              <Label htmlFor={`clinic-${a.id}`}>Clínica</Label>
+              <Select
+                id={`clinic-${a.id}`}
+                name="clinic_id"
+                value={clinicId}
+                onChange={(e) => setClinicId(e.target.value)}
+                required
+              >
+                {clinics.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </Select>
+            </div>
+            <div>
               <Label htmlFor={`patient-${a.id}`}>Paciente</Label>
-              <Select id={`patient-${a.id}`} name="patient_id" defaultValue={a.patient_id} required>
-                {patients.map((p) => (
+              <Select
+                key={clinicId}
+                id={`patient-${a.id}`}
+                name="patient_id"
+                defaultValue={a.patient_id}
+                required
+              >
+                {clinicPatients.map((p) => (
                   <option key={p.id} value={p.id}>
                     {p.full_name}
                   </option>
                 ))}
               </Select>
             </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2.5">
             <div>
               <Label htmlFor={`prof-${a.id}`}>Profissional</Label>
               <Select
@@ -82,6 +118,16 @@ export function AppointmentRow({
                 {professionals.map((p) => (
                   <option key={p.id} value={p.id}>
                     {p.users?.full_name}
+                  </option>
+                ))}
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor={`room-${a.id}`}>Espaço</Label>
+              <Select key={clinicId} id={`room-${a.id}`} name="room_id" defaultValue={a.room_id} required>
+                {clinicRooms.map((r) => (
+                  <option key={r.id} value={r.id}>
+                    {r.name}
                   </option>
                 ))}
               </Select>
@@ -113,16 +159,6 @@ export function AppointmentRow({
 
           <div className="grid grid-cols-2 gap-2.5">
             <div>
-              <Label htmlFor={`room-${a.id}`}>Espaço</Label>
-              <Select id={`room-${a.id}`} name="room_id" defaultValue={a.room_id} required>
-                {rooms.map((r) => (
-                  <option key={r.id} value={r.id}>
-                    {r.name}
-                  </option>
-                ))}
-              </Select>
-            </div>
-            <div>
               <Label htmlFor={`duration-${a.id}`}>Duração (min)</Label>
               <Input
                 id={`duration-${a.id}`}
@@ -132,6 +168,18 @@ export function AppointmentRow({
                 min={5}
                 step={5}
                 required
+              />
+            </div>
+            <div>
+              <Label htmlFor={`amount-${a.id}`}>Valor (€)</Label>
+              <Input
+                id={`amount-${a.id}`}
+                name="amount"
+                type="number"
+                min={0}
+                step={0.01}
+                defaultValue={currentAmount ?? ""}
+                placeholder="Opcional"
               />
             </div>
           </div>
@@ -164,7 +212,7 @@ export function AppointmentRow({
     <li className="flex items-center gap-4 px-5 py-3.5">
       <div
         className="w-1 self-stretch rounded-full"
-        style={{ backgroundColor: a.professionals?.color_hex ?? "#0d7a68" }}
+        style={{ backgroundColor: a.clinics?.color_hex ?? "#0d7a68" }}
       />
       <div className="w-16 shrink-0 text-sm font-medium tabular-nums">
         {formatTime(a.starts_at)}
@@ -172,7 +220,8 @@ export function AppointmentRow({
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium truncate">{a.patients?.full_name}</p>
         <p className="text-[12.5px] text-foreground-faint truncate">
-          {a.rooms?.name} · {a.professionals?.users?.full_name} · {a.duration_min} min
+          {a.clinics?.name} · {a.rooms?.name} · {a.duration_min} min
+          {currentAmount ? ` · ${currentAmount.toFixed(2)} €` : ""}
         </p>
       </div>
       <StatusSelect appointmentId={a.id} status={a.status} />
