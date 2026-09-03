@@ -36,19 +36,22 @@ export function BodyMap({
   view,
   onViewChange,
   points,
-  pendingPoint,
+  pendingPoint = null,
   onRegionClick,
+  readOnly = false,
 }: {
   view: BodyView;
   onViewChange: (view: BodyView) => void;
   points: PainAssessment[];
-  pendingPoint: { region: string; side: BodySide; x: number; y: number } | null;
-  onRegionClick: (region: string, side: BodySide, x: number, y: number) => void;
+  pendingPoint?: { region: string; side: BodySide; x: number; y: number } | null;
+  onRegionClick?: (region: string, side: BodySide, x: number, y: number) => void;
+  readOnly?: boolean;
 }) {
   const svgRef = useRef<SVGSVGElement>(null);
   const box = VIEW_BOX[view];
 
   function handleClick(e: MouseEvent<SVGElement>, region: string, side: BodySide) {
+    if (readOnly || !onRegionClick) return;
     const svg = svgRef.current;
     if (!svg) return;
     const pt = svg.createSVGPoint();
@@ -98,7 +101,10 @@ export function BodyMap({
             fill="var(--mono-bg, var(--background))"
             stroke="var(--line-strong)"
             strokeWidth={1}
-            className="cursor-pointer transition-colors hover:fill-[var(--accent-soft)]"
+            className={cn(
+              "transition-colors",
+              readOnly ? "cursor-default" : "cursor-pointer hover:fill-[var(--accent-soft)]"
+            )}
             onClick={(e: MouseEvent<SVGElement>) => handleClick(e, r.region, r.side)}
           >
             <title>
@@ -135,9 +141,11 @@ export function BodyMap({
           />
         )}
       </svg>
-      <p className="text-center text-[12px] text-foreground-faint mt-2">
-        Clique numa região do corpo para marcar dor ou sintoma.
-      </p>
+      {!readOnly && (
+        <p className="text-center text-[12px] text-foreground-faint mt-2">
+          Clique numa região do corpo para marcar dor ou sintoma.
+        </p>
+      )}
     </div>
   );
 }
