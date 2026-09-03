@@ -19,20 +19,19 @@ export default async function LoginPage({
             "linear-gradient(160deg, #071f3d 0%, #0d5ba8 55%, #3a9bdb 100%)",
         }}
       >
-        <div className="absolute inset-0">
+        <div className="absolute inset-0 opacity-40">
           <SpineIllustration />
         </div>
 
-        <div className="relative z-10 flex items-center gap-2.5 px-12 pt-10">
+        <div className="relative z-10 flex flex-1 flex-col items-center justify-center px-12">
           <Image
-            src="/logo-svb-icon.png"
-            alt="SVB"
-            width={36}
-            height={36}
-            className="h-9 w-9 rounded-md"
+            src="/logo-svb-full.png"
+            alt="SVB Osteomassagem"
+            width={947}
+            height={793}
+            className="w-full max-w-md drop-shadow-[0_20px_50px_rgba(0,0,0,0.35)]"
             priority
           />
-          <span className="font-semibold text-white">SVB Clinic</span>
         </div>
 
         <div className="relative z-10 px-12 pb-14">
