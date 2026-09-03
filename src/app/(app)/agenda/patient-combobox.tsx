@@ -8,12 +8,14 @@ import { Input, Label } from "@/components/ui/input";
 export function PatientCombobox({
   patients,
   name,
+  initialPatient,
 }: {
   patients: { id: string; full_name: string }[];
   name: string;
+  initialPatient?: { id: string; full_name: string };
 }) {
-  const [query, setQuery] = useState("");
-  const [selectedId, setSelectedId] = useState("");
+  const [query, setQuery] = useState(initialPatient?.full_name ?? "");
+  const [selectedId, setSelectedId] = useState(initialPatient?.id ?? "");
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
