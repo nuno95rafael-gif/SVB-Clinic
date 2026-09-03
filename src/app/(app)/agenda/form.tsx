@@ -35,13 +35,12 @@ export function NovaConsultaForm({
   const dateRef = useRef<HTMLInputElement>(null);
   const timeRef = useRef<HTMLInputElement>(null);
   const startsAtRef = useRef<HTMLInputElement>(null);
-  const [clinicId, setClinicId] = useState(clinics[0]?.id ?? "");
+  // A clínica não se escolhe à parte — vem do paciente selecionado (cada
+  // paciente pertence a uma única clínica).
+  const [clinicId, setClinicId] = useState("");
 
-  const clinicPatients = useMemo(
-    () => patients.filter((p) => p.clinic_id === clinicId),
-    [patients, clinicId]
-  );
   const clinicRooms = useMemo(() => rooms.filter((r) => r.clinic_id === clinicId), [rooms, clinicId]);
+  const clinicName = clinics.find((c) => c.id === clinicId)?.name;
 
   return (
     <Card>
@@ -59,30 +58,23 @@ export function NovaConsultaForm({
           className="space-y-3"
         >
           <input type="hidden" name="starts_at" ref={startsAtRef} />
-
-          <div>
-            <Label htmlFor="clinic_id">Clínica</Label>
-            <Select
-              id="clinic_id"
-              name="clinic_id"
-              required
-              value={clinicId}
-              onChange={(e) => setClinicId(e.target.value)}
-            >
-              {clinics.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </Select>
-          </div>
+          <input type="hidden" name="clinic_id" value={clinicId} />
 
           <div>
             <Label htmlFor="date">Data</Label>
             <Input id="date" ref={dateRef} type="date" defaultValue={date} required />
           </div>
 
-          <PatientCombobox key={clinicId} patients={clinicPatients} name="patient_id" />
+          <PatientCombobox
+            patients={patients}
+            name="patient_id"
+            onSelect={(p) => setClinicId(p?.clinic_id ?? "")}
+            allowCreate
+            clinics={clinics}
+          />
+          {clinicName && (
+            <p className="text-[12.5px] text-foreground-faint -mt-1.5">Clínica: {clinicName}</p>
+          )}
 
           <div>
             <Label htmlFor="professional_id">Profissional</Label>
@@ -111,7 +103,7 @@ export function NovaConsultaForm({
             <Label htmlFor="room_id">Espaço</Label>
             <Select key={clinicId} id="room_id" name="room_id" required defaultValue="">
               <option value="" disabled>
-                Selecionar…
+                {clinicId ? "Selecionar…" : "Escolha primeiro um paciente"}
               </option>
               {clinicRooms.map((r) => (
                 <option key={r.id} value={r.id}>

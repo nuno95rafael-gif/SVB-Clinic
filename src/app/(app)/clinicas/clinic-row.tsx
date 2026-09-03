@@ -2,8 +2,8 @@
 
 import { useActionState, useEffect, useState, useTransition } from "react";
 import Link from "next/link";
-import { Pencil } from "lucide-react";
-import { toggleClinicActive, updateClinic } from "./actions";
+import { Pencil, Trash2 } from "lucide-react";
+import { toggleClinicActive, updateClinic, deleteClinic } from "./actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +12,8 @@ import type { Clinic } from "@/types/database";
 export function ClinicRow({ clinic }: { clinic: Clinic }) {
   const [editing, setEditing] = useState(false);
   const [toggling, startToggle] = useTransition();
+  const [deleting, startDelete] = useTransition();
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const [state, formAction, pending] = useActionState<
     { error: string | null; saved: boolean },
     FormData
@@ -20,6 +22,17 @@ export function ClinicRow({ clinic }: { clinic: Clinic }) {
   useEffect(() => {
     if (state.saved) setEditing(false);
   }, [state.saved]);
+
+  function handleDelete() {
+    if (!confirm(`Apagar a clínica "${clinic.name}"? Só é possível se não tiver nada associado.`)) {
+      return;
+    }
+    setDeleteError(null);
+    startDelete(async () => {
+      const res = await deleteClinic(clinic.id);
+      if (res.error) setDeleteError(res.error);
+    });
+  }
 
   if (editing) {
     return (
@@ -48,39 +61,51 @@ export function ClinicRow({ clinic }: { clinic: Clinic }) {
   }
 
   return (
-    <li className="flex items-center justify-between px-5 py-3">
-      <Link href={`/clinicas/${clinic.id}`} className="flex min-w-0 items-center gap-2.5">
-        <span
-          className="h-3 w-3 shrink-0 rounded-full"
-          style={{ backgroundColor: clinic.color_hex }}
-          title="Cor na agenda"
-        />
-        <span>
-          <p className="text-sm font-medium hover:text-accent-ink">{clinic.name}</p>
-          {clinic.nif && <p className="text-[12.5px] text-foreground-faint">NIF {clinic.nif}</p>}
-        </span>
-      </Link>
-      <div className="flex items-center gap-3">
-        <Badge tone={clinic.active ? "accent" : "neutral"}>
-          {clinic.active ? "Ativa" : "Inativa"}
-        </Badge>
-        <button
-          type="button"
-          onClick={() => setEditing(true)}
-          className="text-foreground-faint hover:text-foreground"
-          aria-label="Editar"
-        >
-          <Pencil size={14} />
-        </button>
-        <Button
-          size="sm"
-          variant="secondary"
-          disabled={toggling}
-          onClick={() => startToggle(() => toggleClinicActive(clinic.id, !clinic.active))}
-        >
-          {clinic.active ? "Desativar" : "Ativar"}
-        </Button>
+    <li className="px-5 py-3">
+      <div className="flex items-center justify-between">
+        <Link href={`/clinicas/${clinic.id}`} className="flex min-w-0 items-center gap-2.5">
+          <span
+            className="h-3 w-3 shrink-0 rounded-full"
+            style={{ backgroundColor: clinic.color_hex }}
+            title="Cor na agenda"
+          />
+          <span>
+            <p className="text-sm font-medium hover:text-accent-ink">{clinic.name}</p>
+            {clinic.nif && <p className="text-[12.5px] text-foreground-faint">NIF {clinic.nif}</p>}
+          </span>
+        </Link>
+        <div className="flex items-center gap-3">
+          <Badge tone={clinic.active ? "accent" : "neutral"}>
+            {clinic.active ? "Ativa" : "Inativa"}
+          </Badge>
+          <button
+            type="button"
+            onClick={() => setEditing(true)}
+            className="text-foreground-faint hover:text-foreground"
+            aria-label="Editar"
+          >
+            <Pencil size={14} />
+          </button>
+          <button
+            type="button"
+            disabled={deleting}
+            onClick={handleDelete}
+            className="text-foreground-faint hover:text-rose disabled:opacity-50"
+            aria-label="Apagar"
+          >
+            <Trash2 size={14} />
+          </button>
+          <Button
+            size="sm"
+            variant="secondary"
+            disabled={toggling}
+            onClick={() => startToggle(() => toggleClinicActive(clinic.id, !clinic.active))}
+          >
+            {clinic.active ? "Desativar" : "Ativar"}
+          </Button>
+        </div>
       </div>
+      {deleteError && <p className="mt-1.5 text-[12.5px] text-rose">{deleteError}</p>}
     </li>
   );
 }

@@ -7,6 +7,7 @@ import { updateAppointment, deleteAppointment } from "./actions";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Select } from "@/components/ui/input";
 import { StatusSelect } from "./status-select";
+import { PatientCombobox } from "./patient-combobox";
 import { toISODate, toStartsAtISO } from "./date-utils";
 import { formatTime } from "@/lib/utils";
 import type { Appointment } from "@/types/database";
@@ -49,11 +50,8 @@ export function AppointmentRow({
   // numeric(10,2) vem do Postgres como string via PostgREST.
   const currentAmount = a.payments?.[0]?.amount != null ? Number(a.payments[0].amount) : undefined;
 
-  const clinicPatients = useMemo(
-    () => patients.filter((p) => p.clinic_id === clinicId),
-    [patients, clinicId]
-  );
   const clinicRooms = useMemo(() => rooms.filter((r) => r.clinic_id === clinicId), [rooms, clinicId]);
+  const clinicName = clinics.find((c) => c.id === clinicId)?.name;
 
   if (editing) {
     return (
@@ -70,40 +68,19 @@ export function AppointmentRow({
           <input type="hidden" name="appointment_id" value={a.id} />
           <input type="hidden" name="starts_at" ref={startsAtRef} />
 
-          <div className="grid grid-cols-2 gap-2.5">
-            <div>
-              <Label htmlFor={`clinic-${a.id}`}>Clínica</Label>
-              <Select
-                id={`clinic-${a.id}`}
-                name="clinic_id"
-                value={clinicId}
-                onChange={(e) => setClinicId(e.target.value)}
-                required
-              >
-                {clinics.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor={`patient-${a.id}`}>Paciente</Label>
-              <Select
-                key={clinicId}
-                id={`patient-${a.id}`}
-                name="patient_id"
-                defaultValue={a.patient_id}
-                required
-              >
-                {clinicPatients.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.full_name}
-                  </option>
-                ))}
-              </Select>
-            </div>
-          </div>
+          <input type="hidden" name="clinic_id" value={clinicId} />
+
+          <PatientCombobox
+            patients={patients}
+            name="patient_id"
+            initialPatient={{ id: a.patient_id, full_name: a.patients?.full_name ?? "" }}
+            onSelect={(p) => setClinicId(p?.clinic_id ?? a.clinic_id)}
+            allowCreate
+            clinics={clinics}
+          />
+          {clinicName && (
+            <p className="text-[12.5px] text-foreground-faint -mt-1.5">Clínica: {clinicName}</p>
+          )}
 
           <div className="grid grid-cols-2 gap-2.5">
             <div>

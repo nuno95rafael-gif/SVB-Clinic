@@ -29,6 +29,16 @@ export function EditClinicForm({ clinic }: { clinic: Clinic }) {
             <Label htmlFor="nif">NIF</Label>
             <Input id="nif" name="nif" defaultValue={clinic.nif ?? ""} />
           </div>
+          <div>
+            <Label htmlFor="color_hex">Cor na agenda</Label>
+            <input
+              id="color_hex"
+              type="color"
+              name="color_hex"
+              defaultValue={clinic.color_hex}
+              className="h-10 w-16 rounded-md border border-line"
+            />
+          </div>
 
           {state.error && (
             <p className="rounded-md bg-rose-soft px-3 py-2 text-[12.5px] text-rose">
