@@ -781,7 +781,10 @@ function GuardarSection({
                 : "Ao concluir, o estado da marcação passa a “Concluída”."}
             </p>
             {done && isAdmin && (
-              <Link href="/financeiro" className="text-[12.5px] text-accent-ink hover:underline">
+              <Link
+                href={`/financeiro?patient=${patientId}&appointment=${appointmentId}`}
+                className="text-[12.5px] text-accent-ink hover:underline"
+              >
                 Registar pagamento desta consulta →
               </Link>
             )}

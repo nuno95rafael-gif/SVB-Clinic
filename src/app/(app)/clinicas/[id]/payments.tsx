@@ -39,7 +39,10 @@ export function ClinicPayments({ clinicId, payments }: { clinicId: string; payme
   );
   const [removing, startRemove] = useTransition();
 
-  const totalPaid = payments.filter((p) => p.status === "paid").reduce((s, p) => s + p.amount, 0);
+  // amount é numeric(10,2) — o PostgREST devolve-o como string.
+  const totalPaid = payments
+    .filter((p) => p.status === "paid")
+    .reduce((s, p) => s + Number(p.amount), 0);
 
   return (
     <Card>
