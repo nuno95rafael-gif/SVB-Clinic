@@ -13,6 +13,9 @@ export async function createRoom(_prevState: { error: string | null }, formData:
 
   const supabase = await createClient();
   const clinicId = await getActiveClinicId();
+  if (!clinicId) {
+    return { error: "Selecione uma clínica específica na barra lateral antes de criar um espaço." };
+  }
 
   const { error } = await supabase.from("rooms").insert({
     clinic_id: clinicId,

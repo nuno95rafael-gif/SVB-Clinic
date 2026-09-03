@@ -47,6 +47,9 @@ export async function createPatient(
   }
 
   const clinicId = await getActiveClinicId();
+  if (!clinicId) {
+    return { error: "Selecione uma clínica específica na barra lateral antes de registar um paciente." };
+  }
 
   const { data: patient, error } = await supabase
     .from("patients")

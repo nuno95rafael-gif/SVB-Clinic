@@ -4,6 +4,7 @@ import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Building2 } from "lucide-react";
 import { setActiveClinic } from "@/app/(app)/clinic-actions";
+import { ALL_CLINICS_VALUE } from "@/lib/clinic-constants";
 
 export function ClinicSwitcher({
   clinics,
@@ -31,11 +32,12 @@ export function ClinicSwitcher({
         <Building2 size={12} /> Clínica
       </label>
       <select
-        value={activeClinicId ?? ""}
+        value={activeClinicId ?? ALL_CLINICS_VALUE}
         onChange={handleChange}
-        disabled={pending || clinics.length < 2}
+        disabled={pending}
         className="h-9 w-full rounded-md border border-line bg-background px-2.5 text-[13px] font-medium text-foreground disabled:opacity-70"
       >
+        <option value={ALL_CLINICS_VALUE}>Todas as clínicas</option>
         {clinics.map((c) => (
           <option key={c.id} value={c.id}>
             {c.name}
