@@ -37,7 +37,10 @@ export function NovaConsultaForm({
       </CardHeader>
       <CardContent>
         <form action={formAction} className="space-y-3">
-          <input type="hidden" name="date" value={date} />
+          <div>
+            <Label htmlFor="date">Data</Label>
+            <Input id="date" name="date" type="date" defaultValue={date} required />
+          </div>
 
           <PatientCombobox patients={patients} name="patient_id" />
 
