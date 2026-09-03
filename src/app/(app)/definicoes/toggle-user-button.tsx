@@ -1,7 +1,7 @@
 "use client";
 
 import { useTransition } from "react";
-import { toggleUserActive } from "./actions";
+import { toggleUserActive } from "./users-actions";
 import { Button } from "@/components/ui/button";
 
 export function ToggleUserButton({ userId, active }: { userId: string; active: boolean }) {

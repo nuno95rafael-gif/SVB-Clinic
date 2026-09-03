@@ -25,7 +25,7 @@ export default async function ProfissionaisPage() {
             Perfis clínicos ligados a contas de utilizador.
           </p>
         </div>
-        <Link href="/utilizadores">
+        <Link href="/definicoes">
           <Button variant="secondary">Convidar profissional</Button>
         </Link>
       </div>
@@ -33,7 +33,7 @@ export default async function ProfissionaisPage() {
       {!professionals || professionals.length === 0 ? (
         <Card>
           <CardContent className="py-10 text-center text-sm text-foreground-faint">
-            Ainda não há profissionais. Convide um em Utilizadores.
+            Ainda não há profissionais. Convide um em Definições.
           </CardContent>
         </Card>
       ) : (
