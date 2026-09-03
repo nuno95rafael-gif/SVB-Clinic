@@ -85,6 +85,16 @@ export async function updateUser(
 
   if (error) return { error: "Não foi possível guardar. " + error.message, saved: false };
 
+  if (parsed.data.role === "professional") {
+    // cobre o caso de um utilizador ter sido convidado antes de existir esta
+    // lógica, ou de ter passado de admin a profissional — sem isto ficava
+    // sem entrada em professionals e não aparecia nas opções da agenda.
+    const clinicId = await getActiveClinicId();
+    await admin
+      .from("professionals")
+      .upsert({ user_id: parsed.data.user_id, clinic_id: clinicId }, { onConflict: "user_id", ignoreDuplicates: true });
+  }
+
   revalidatePath("/definicoes");
   return { error: null, saved: true };
 }

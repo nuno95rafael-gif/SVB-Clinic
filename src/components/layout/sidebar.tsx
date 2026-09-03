@@ -7,7 +7,6 @@ import {
   LayoutDashboard,
   CalendarDays,
   Users,
-  Stethoscope,
   BarChart3,
   Wallet,
   DoorOpen,
@@ -33,7 +32,6 @@ const NAV: {
   { href: "/financeiro", label: "Financeiro", icon: Wallet, roles: ["admin"] },
   { href: "/espacos", label: "Espaços", icon: DoorOpen, roles: ["admin"] },
   { href: "/clinicas", label: "Clínicas", icon: Building2, roles: ["admin"] },
-  { href: "/profissionais", label: "Profissionais", icon: Stethoscope, roles: ["admin"] },
   { href: "/definicoes", label: "Definições", icon: Settings, roles: ["admin", "professional"] },
 ] as const;
 

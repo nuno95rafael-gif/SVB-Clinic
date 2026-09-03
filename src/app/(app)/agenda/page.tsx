@@ -111,7 +111,17 @@ export default async function AgendaPage({
 
       <div className="grid grid-cols-3 gap-6">
         <div className="col-span-2">
-          {view === "day" && <DayView appointments={list} />}
+          {view === "day" && (
+            <DayView
+              appointments={list}
+              patients={patients ?? []}
+              rooms={rooms ?? []}
+              professionals={
+                (professionals as unknown as { id: string; users: { full_name: string } }[]) ?? []
+              }
+              isAdmin={profile.role === "admin"}
+            />
+          )}
           {view === "week" && <WeekView weekStart={start} appointments={list} />}
           {view === "month" && <MonthView monthDate={refDate} appointments={list} />}
         </div>

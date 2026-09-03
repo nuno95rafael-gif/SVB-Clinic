@@ -1,11 +1,12 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useRef } from "react";
 import { createAppointment } from "./actions";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Select } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PatientCombobox } from "./patient-combobox";
+import { toStartsAtISO } from "./date-utils";
 
 export function NovaConsultaForm({
   date,
@@ -29,6 +30,9 @@ export function NovaConsultaForm({
     error: null,
     ok: false,
   });
+  const dateRef = useRef<HTMLInputElement>(null);
+  const timeRef = useRef<HTMLInputElement>(null);
+  const startsAtRef = useRef<HTMLInputElement>(null);
 
   return (
     <Card>
@@ -36,10 +40,19 @@ export function NovaConsultaForm({
         <CardTitle>Nova consulta</CardTitle>
       </CardHeader>
       <CardContent>
-        <form action={formAction} className="space-y-3">
+        <form
+          action={formAction}
+          onSubmit={() => {
+            if (startsAtRef.current && dateRef.current && timeRef.current) {
+              startsAtRef.current.value = toStartsAtISO(dateRef.current.value, timeRef.current.value);
+            }
+          }}
+          className="space-y-3"
+        >
+          <input type="hidden" name="starts_at" ref={startsAtRef} />
           <div>
             <Label htmlFor="date">Data</Label>
-            <Input id="date" name="date" type="date" defaultValue={date} required />
+            <Input id="date" ref={dateRef} type="date" defaultValue={date} required />
           </div>
 
           <PatientCombobox patients={patients} name="patient_id" />
@@ -84,7 +97,7 @@ export function NovaConsultaForm({
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label htmlFor="time">Hora</Label>
-              <Input id="time" name="time" type="time" required />
+              <Input id="time" ref={timeRef} type="time" required />
             </div>
             <div>
               <Label htmlFor="duration_min">Duração (min)</Label>

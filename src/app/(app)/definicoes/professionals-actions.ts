@@ -17,5 +17,5 @@ export async function updateProfessional(formData: FormData) {
     .update({ specialty: specialty || null, license_number: license_number || null, color_hex })
     .eq("id", id);
 
-  revalidatePath("/profissionais");
+  revalidatePath("/definicoes");
 }

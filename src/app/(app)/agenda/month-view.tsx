@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
+import { cn, formatTime } from "@/lib/utils";
 import { getMonthGridDays, isSameDate, isSameMonthAs, toISODate } from "./date-utils";
 import type { Appointment } from "@/types/database";
 
@@ -68,10 +68,7 @@ export function MonthView({
                       borderLeft: `2px solid ${a.professionals?.color_hex ?? "#0d7a68"}`,
                     }}
                   >
-                    {new Intl.DateTimeFormat("pt-PT", { timeStyle: "short" }).format(
-                      new Date(a.starts_at)
-                    )}{" "}
-                    {a.patients?.full_name}
+                    {formatTime(a.starts_at)} {a.patients?.full_name}
                   </Link>
                 ))}
                 {hiddenCount > 0 && (

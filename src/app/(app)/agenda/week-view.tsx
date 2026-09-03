@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
+import { cn, formatTime } from "@/lib/utils";
 import { getWeekDays, isSameDate, toISODate } from "./date-utils";
 import type { Appointment } from "@/types/database";
 
@@ -58,11 +58,7 @@ export function WeekView({
                       borderLeft: `2px solid ${a.professionals?.color_hex ?? "#0d7a68"}`,
                     }}
                   >
-                    <span className="font-medium tabular-nums">
-                      {new Intl.DateTimeFormat("pt-PT", { timeStyle: "short" }).format(
-                        new Date(a.starts_at)
-                      )}
-                    </span>{" "}
+                    <span className="font-medium tabular-nums">{formatTime(a.starts_at)}</span>{" "}
                     <span className="truncate">{a.patients?.full_name}</span>
                   </Link>
                 ))}
