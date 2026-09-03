@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/auth";
+import { getActiveClinicId } from "@/lib/clinic";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { NovoEspacoForm } from "./form";
@@ -9,7 +10,10 @@ import type { Room } from "@/types/database";
 export default async function EspacosPage() {
   await requireAdmin();
   const supabase = await createClient();
-  const { data: rooms } = await supabase.from("rooms").select("*").order("name");
+  const activeClinicId = await getActiveClinicId();
+  let roomsQuery = supabase.from("rooms").select("*").order("name");
+  if (activeClinicId) roomsQuery = roomsQuery.eq("clinic_id", activeClinicId);
+  const { data: rooms } = await roomsQuery;
 
   return (
     <div className="p-8 max-w-3xl">

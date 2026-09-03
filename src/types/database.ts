@@ -119,7 +119,9 @@ export interface Appointment {
 export interface Payment {
   id: string;
   appointment_id: string | null;
-  patient_id: string;
+  patient_id: string | null;
+  clinic_id: string | null;
+  description: string | null;
   amount: number;
   status: PaymentStatus;
   method: PaymentMethod | null;

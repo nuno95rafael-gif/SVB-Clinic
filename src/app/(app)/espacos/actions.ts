@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/auth";
+import { getActiveClinicId } from "@/lib/clinic";
 
 export async function createRoom(_prevState: { error: string | null }, formData: FormData) {
   await requireAdmin();
@@ -11,10 +12,10 @@ export async function createRoom(_prevState: { error: string | null }, formData:
   if (!name) return { error: "Indique o nome do espaço." };
 
   const supabase = await createClient();
-  const { data: clinic } = await supabase.from("clinics").select("id").limit(1).single();
+  const clinicId = await getActiveClinicId();
 
   const { error } = await supabase.from("rooms").insert({
-    clinic_id: clinic?.id,
+    clinic_id: clinicId,
     name,
     description: description || null,
   });

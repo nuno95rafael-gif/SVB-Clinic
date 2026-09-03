@@ -5,6 +5,7 @@ import { createAppointment } from "./actions";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Select } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PatientCombobox } from "./patient-combobox";
 
 export function NovaConsultaForm({
   date,
@@ -38,19 +39,7 @@ export function NovaConsultaForm({
         <form action={formAction} className="space-y-3">
           <input type="hidden" name="date" value={date} />
 
-          <div>
-            <Label htmlFor="patient_id">Paciente</Label>
-            <Select id="patient_id" name="patient_id" required defaultValue="">
-              <option value="" disabled>
-                Selecionar…
-              </option>
-              {patients.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.full_name}
-                </option>
-              ))}
-            </Select>
-          </div>
+          <PatientCombobox patients={patients} name="patient_id" />
 
           <div>
             <Label htmlFor="professional_id">Profissional</Label>

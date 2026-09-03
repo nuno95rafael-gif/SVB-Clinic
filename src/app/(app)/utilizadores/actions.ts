@@ -3,8 +3,8 @@
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { createClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/auth";
+import { getActiveClinicId } from "@/lib/clinic";
 
 const schema = z.object({
   email: z.string().email("Email inválido."),
@@ -36,12 +36,11 @@ export async function inviteUser(_prevState: { error: string | null; ok: boolean
   }
 
   if (parsed.data.role === "professional") {
-    const supabase = await createClient();
-    const { data: clinic } = await supabase.from("clinics").select("id").limit(1).single();
+    const clinicId = await getActiveClinicId();
     // upsert porque o trigger on_auth_user_created já criou o perfil em public.users
     await admin.from("professionals").insert({
       user_id: data.user.id,
-      clinic_id: clinic?.id,
+      clinic_id: clinicId,
     });
   }
 
