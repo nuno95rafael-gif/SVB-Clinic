@@ -4,7 +4,7 @@ import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Building2 } from "lucide-react";
 import { setActiveClinic } from "@/app/(app)/clinic-actions";
-import { ALL_CLINICS_VALUE } from "@/lib/clinic";
+import { ALL_CLINICS_VALUE } from "@/lib/clinic-constants";
 
 export function ClinicSwitcher({
   clinics,

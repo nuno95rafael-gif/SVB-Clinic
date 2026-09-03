@@ -1,11 +1,9 @@
 import { cache } from "react";
 import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
+import { ACTIVE_CLINIC_COOKIE, ALL_CLINICS_VALUE } from "@/lib/clinic-constants";
 
-export const ACTIVE_CLINIC_COOKIE = "active_clinic_id";
-// Valor especial do cookie que representa "Todas as clínicas" — distinto de
-// um cookie em falta (que continua a cair na primeira clínica ativa).
-export const ALL_CLINICS_VALUE = "all";
+export { ACTIVE_CLINIC_COOKIE, ALL_CLINICS_VALUE };
 
 // Clínica em que o utilizador está "a trabalhar" neste momento. Guardada em
 // cookie (não na sessão) porque um único profissional pode operar em várias
