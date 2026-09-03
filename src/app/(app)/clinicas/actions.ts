@@ -94,3 +94,40 @@ export async function removeClinicPayment(paymentId: string, clinicId: string) {
   await supabase.from("payments").delete().eq("id", paymentId);
   revalidatePath(`/clinicas/${clinicId}`);
 }
+
+export async function deleteClinic(clinicId: string): Promise<{ error: string | null }> {
+  await requireAdmin();
+  const supabase = await createClient();
+
+  // Apagar arrastaria pacientes/consultas/pagamentos reais — só permite
+  // apagar uma clínica que já não tenha nada associado.
+  const [patients, rooms, appointments, payments, professionals, users] = await Promise.all([
+    supabase.from("patients").select("id", { count: "exact", head: true }).eq("clinic_id", clinicId),
+    supabase.from("rooms").select("id", { count: "exact", head: true }).eq("clinic_id", clinicId),
+    supabase.from("appointments").select("id", { count: "exact", head: true }).eq("clinic_id", clinicId),
+    supabase.from("payments").select("id", { count: "exact", head: true }).eq("clinic_id", clinicId),
+    supabase.from("professionals").select("id", { count: "exact", head: true }).eq("clinic_id", clinicId),
+    supabase.from("users").select("id", { count: "exact", head: true }).eq("clinic_id", clinicId),
+  ]);
+
+  const blockers: string[] = [];
+  if ((patients.count ?? 0) > 0) blockers.push("pacientes");
+  if ((rooms.count ?? 0) > 0) blockers.push("espaços");
+  if ((appointments.count ?? 0) > 0) blockers.push("consultas");
+  if ((payments.count ?? 0) > 0) blockers.push("pagamentos");
+  if ((professionals.count ?? 0) > 0) blockers.push("profissionais");
+  if ((users.count ?? 0) > 0) blockers.push("utilizadores");
+
+  if (blockers.length > 0) {
+    return {
+      error: `Não é possível apagar: tem ${blockers.join(", ")} associados. Desative-a em vez disso, ou remova/transfira esses registos primeiro.`,
+    };
+  }
+
+  const { error } = await supabase.from("clinics").delete().eq("id", clinicId);
+  if (error) return { error: "Não foi possível apagar a clínica. " + error.message };
+
+  revalidatePath("/clinicas");
+  revalidatePath("/", "layout");
+  return { error: null };
+}

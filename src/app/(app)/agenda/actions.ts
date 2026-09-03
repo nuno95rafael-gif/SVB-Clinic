@@ -6,8 +6,10 @@ import { createClient } from "@/lib/supabase/server";
 import { requireUser } from "@/lib/auth";
 
 const schema = z.object({
-  clinic_id: z.string().uuid("Selecione uma clínica."),
-  patient_id: z.string().uuid("Selecione um paciente."),
+  patient_id: z.string().uuid("Selecione ou crie um paciente."),
+  // Derivado do paciente escolhido (cada paciente pertence a uma única
+  // clínica) — não há seletor de clínica próprio no formulário.
+  clinic_id: z.string().uuid("Selecione ou crie um paciente."),
   professional_id: z.string().uuid("Selecione um profissional."),
   room_id: z.string().uuid("Selecione um espaço."),
   // Já vem como ISO UTC calculado no browser (ver toStartsAtISO em
