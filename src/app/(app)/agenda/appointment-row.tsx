@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input, Label, Select } from "@/components/ui/input";
 import { StatusSelect } from "./status-select";
 import { toISODate, toStartsAtISO } from "./date-utils";
+import { formatTime } from "@/lib/utils";
 import type { Appointment } from "@/types/database";
 
 function toHHMM(d: Date) {
@@ -166,7 +167,7 @@ export function AppointmentRow({
         style={{ backgroundColor: a.professionals?.color_hex ?? "#0d7a68" }}
       />
       <div className="w-16 shrink-0 text-sm font-medium tabular-nums">
-        {new Intl.DateTimeFormat("pt-PT", { timeStyle: "short" }).format(startsAt)}
+        {formatTime(a.starts_at)}
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium truncate">{a.patients?.full_name}</p>
