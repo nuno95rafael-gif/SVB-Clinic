@@ -4,7 +4,7 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAdmin } from "@/lib/auth";
-import { getActiveClinicId } from "@/lib/clinic";
+import { getActiveClinicIdOrFirst } from "@/lib/clinic";
 
 const schema = z.object({
   email: z.string().email("Email inválido."),
@@ -36,7 +36,7 @@ export async function inviteUser(_prevState: { error: string | null; ok: boolean
   }
 
   if (parsed.data.role === "professional") {
-    const clinicId = await getActiveClinicId();
+    const clinicId = await getActiveClinicIdOrFirst();
     // upsert porque o trigger on_auth_user_created já criou o perfil em public.users
     await admin.from("professionals").insert({
       user_id: data.user.id,
@@ -89,7 +89,7 @@ export async function updateUser(
     // cobre o caso de um utilizador ter sido convidado antes de existir esta
     // lógica, ou de ter passado de admin a profissional — sem isto ficava
     // sem entrada em professionals e não aparecia nas opções da agenda.
-    const clinicId = await getActiveClinicId();
+    const clinicId = await getActiveClinicIdOrFirst();
     await admin
       .from("professionals")
       .upsert({ user_id: parsed.data.user_id, clinic_id: clinicId }, { onConflict: "user_id", ignoreDuplicates: true });
