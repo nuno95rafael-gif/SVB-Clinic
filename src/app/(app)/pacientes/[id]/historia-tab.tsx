@@ -1,7 +1,8 @@
 "use client";
 
 import { useActionState } from "react";
-import { saveClinicalRecord, RED_FLAGS } from "./historia-actions";
+import { saveClinicalRecord } from "./historia-actions";
+import { RED_FLAGS } from "./red-flags";
 import { Button } from "@/components/ui/button";
 import { Label, Textarea } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

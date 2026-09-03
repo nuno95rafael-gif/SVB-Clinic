@@ -3,15 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requireUser } from "@/lib/auth";
-
-const RED_FLAGS = [
-  "trauma_recente",
-  "febre",
-  "perda_peso_inexplicada",
-  "alteracoes_neurologicas",
-  "dor_noturna",
-  "outros_sinais",
-] as const;
+import { RED_FLAGS } from "./red-flags";
 
 export async function saveClinicalRecord(
   _prevState: { error: string | null; saved: boolean },
@@ -52,5 +44,3 @@ export async function saveClinicalRecord(
   revalidatePath(`/pacientes/${patientId}`);
   return { error: null, saved: true };
 }
-
-export { RED_FLAGS };
