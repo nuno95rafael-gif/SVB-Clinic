@@ -1,10 +1,8 @@
-import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/auth";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { NovaClinicaForm } from "./form";
-import { ToggleClinicButton } from "./toggle-button";
+import { ClinicRow } from "./clinic-row";
 import type { Clinic } from "@/types/database";
 
 export default async function ClinicasPage() {
@@ -29,18 +27,7 @@ export default async function ClinicasPage() {
             ) : (
               <ul className="divide-y divide-line">
                 {(clinics as Clinic[]).map((c) => (
-                  <li key={c.id} className="flex items-center justify-between px-5 py-3">
-                    <Link href={`/clinicas/${c.id}`} className="min-w-0">
-                      <p className="text-sm font-medium hover:text-accent-ink">{c.name}</p>
-                      {c.nif && <p className="text-[12.5px] text-foreground-faint">NIF {c.nif}</p>}
-                    </Link>
-                    <div className="flex items-center gap-3">
-                      <Badge tone={c.active ? "accent" : "neutral"}>
-                        {c.active ? "Ativa" : "Inativa"}
-                      </Badge>
-                      <ToggleClinicButton clinicId={c.id} active={c.active} />
-                    </div>
-                  </li>
+                  <ClinicRow key={c.id} clinic={c} />
                 ))}
               </ul>
             )}

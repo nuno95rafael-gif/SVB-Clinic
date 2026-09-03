@@ -54,3 +54,37 @@ export async function toggleUserActive(userId: string, active: boolean) {
   await admin.from("users").update({ active }).eq("id", userId);
   revalidatePath("/definicoes");
 }
+
+const updateSchema = z.object({
+  user_id: z.string().uuid(),
+  full_name: z.string().min(2, "Indique o nome."),
+  role: z.enum(["admin", "professional"]),
+});
+
+export async function updateUser(
+  _prevState: { error: string | null; saved: boolean },
+  formData: FormData
+) {
+  await requireAdmin();
+
+  const parsed = updateSchema.safeParse({
+    user_id: formData.get("user_id"),
+    full_name: formData.get("full_name"),
+    role: formData.get("role"),
+  });
+
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Dados inválidos.", saved: false };
+  }
+
+  const admin = createAdminClient();
+  const { error } = await admin
+    .from("users")
+    .update({ full_name: parsed.data.full_name, role: parsed.data.role })
+    .eq("id", parsed.data.user_id);
+
+  if (error) return { error: "Não foi possível guardar. " + error.message, saved: false };
+
+  revalidatePath("/definicoes");
+  return { error: null, saved: true };
+}
