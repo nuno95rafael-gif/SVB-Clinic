@@ -118,14 +118,19 @@ export default async function PacienteDetailPage({
               <ul className="divide-y divide-line">
                 {(appointments as unknown as (Appointment & { rooms?: { name: string } })[]).map(
                   (a) => (
-                    <li key={a.id} className="flex items-center justify-between px-5 py-3">
-                      <div>
-                        <p className="text-sm font-medium">{formatDateTime(a.starts_at)}</p>
-                        <p className="text-[12.5px] text-foreground-faint">
-                          {a.type} · {a.rooms?.name}
-                        </p>
-                      </div>
-                      <Badge tone={a.status === "completed" ? "accent" : "neutral"}>{a.status}</Badge>
+                    <li key={a.id}>
+                      <Link
+                        href={`/consultas/${a.id}`}
+                        className="flex items-center justify-between px-5 py-3 hover:bg-background"
+                      >
+                        <div>
+                          <p className="text-sm font-medium">{formatDateTime(a.starts_at)}</p>
+                          <p className="text-[12.5px] text-foreground-faint">
+                            {a.type} · {a.rooms?.name}
+                          </p>
+                        </div>
+                        <Badge tone={a.status === "completed" ? "accent" : "neutral"}>{a.status}</Badge>
+                      </Link>
                     </li>
                   )
                 )}
@@ -138,7 +143,8 @@ export default async function PacienteDetailPage({
       {(tab === "corpo" || tab === "documentos" || tab === "financeiro") && (
         <Card>
           <CardContent className="py-10 text-center text-sm text-foreground-faint">
-            {tab === "corpo" && "Mapa corporal e evolução da dor — parte da Fase 2, junto com o ecrã de consulta."}
+            {tab === "corpo" &&
+              "O mapa corporal e a dor são registados por consulta — abra uma consulta na tab acima para marcar ou consultar. Gráfico de evolução comparando todas as consultas: planeado a seguir."}
             {tab === "documentos" && "Upload de documentos — planeado para a Fase 3."}
             {tab === "financeiro" && "Histórico de pagamentos deste paciente — planeado para a Fase 3."}
           </CardContent>

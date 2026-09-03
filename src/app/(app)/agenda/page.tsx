@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { NovaConsultaForm } from "./form";
 import { StatusSelect } from "./status-select";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Stethoscope } from "lucide-react";
 import type { Appointment } from "@/types/database";
 
 function dayBounds(dateStr: string) {
@@ -115,6 +115,11 @@ export default async function AgendaPage({
                       </p>
                     </div>
                     <StatusSelect appointmentId={a.id} status={a.status} />
+                    <Link href={`/consultas/${a.id}`}>
+                      <Button variant="secondary" size="sm">
+                        <Stethoscope size={14} /> Consulta
+                      </Button>
+                    </Link>
                   </li>
                 ))}
               </ul>

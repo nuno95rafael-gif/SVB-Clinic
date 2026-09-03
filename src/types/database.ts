@@ -127,6 +127,97 @@ export interface Payment {
   created_at: string;
 }
 
+export type SymptomType =
+  | "dor"
+  | "rigidez"
+  | "limitacao_movimento"
+  | "formigueiro"
+  | "dormencia"
+  | "fraqueza"
+  | "outro";
+export type PainType =
+  | "dor"
+  | "pressao"
+  | "queimacao"
+  | "formigueiro"
+  | "dormencia"
+  | "rigidez"
+  | "outro";
+export type PainFrequency = "constante" | "intermitente";
+export type BodySide = "esquerdo" | "direito" | "bilateral" | "central";
+export type BodyView = "anterior" | "posterior" | "lateral_esquerda" | "lateral_direita";
+
+export interface Consultation {
+  id: string;
+  appointment_id: string;
+  chief_complaint: string | null;
+  session_notes: string | null;
+  started_at: string;
+  finished_at: string | null;
+}
+
+export interface Symptom {
+  id: string;
+  consultation_id: string;
+  symptom_type: SymptomType;
+  notes: string | null;
+}
+
+export interface PainAssessment {
+  id: string;
+  consultation_id: string;
+  patient_id: string;
+  body_view: BodyView;
+  region: string;
+  side: BodySide | null;
+  x: number | null;
+  y: number | null;
+  intensity: number;
+  pain_type: PainType | null;
+  frequency: PainFrequency | null;
+  context_tags: string[];
+  observations: string | null;
+  recorded_at: string;
+}
+
+export interface PhysicalAssessment {
+  id: string;
+  consultation_id: string;
+  mobility: string | null;
+  rom_notes: string | null;
+  tests: Record<string, unknown>;
+  asymmetry: string | null;
+  limitations: string | null;
+  custom_fields: Record<string, unknown>;
+}
+
+export interface TreatmentCatalogItem {
+  id: string;
+  clinic_id: string;
+  name: string;
+  category: string | null;
+  active: boolean;
+}
+
+export interface TreatmentRecord {
+  id: string;
+  consultation_id: string;
+  treatment_id: string | null;
+  region: string | null;
+  technique: string | null;
+  observations: string | null;
+  treatments_catalog?: Pick<TreatmentCatalogItem, "id" | "name"> | null;
+}
+
+export interface CarePlan {
+  id: string;
+  consultation_id: string;
+  recommendations: string | null;
+  home_care: string | null;
+  education_notes: string | null;
+  next_appointment_suggested_at: string | null;
+}
+
 // Placeholder genérico — mantém o createClient<Database> a compilar
 // sem exigir todas as 21 tabelas tipadas à mão.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
