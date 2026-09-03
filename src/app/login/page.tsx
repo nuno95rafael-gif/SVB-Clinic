@@ -1,7 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
 import { LoginForm } from "./login-form";
-import { SpineIllustration } from "./spine-illustration";
 
 export default async function LoginPage({
   searchParams,
@@ -19,19 +18,21 @@ export default async function LoginPage({
             "linear-gradient(160deg, #071f3d 0%, #0d5ba8 55%, #3a9bdb 100%)",
         }}
       >
-        <div className="absolute inset-0 opacity-40">
-          <SpineIllustration />
-        </div>
-
         <div className="relative z-10 flex flex-1 flex-col items-center justify-center px-12">
-          <Image
-            src="/logo-svb-full.png"
-            alt="SVB Osteomassagem"
-            width={947}
-            height={793}
-            className="w-full max-w-md drop-shadow-[0_20px_50px_rgba(0,0,0,0.35)]"
-            priority
-          />
+          <div className="relative flex w-full max-w-md items-center justify-center">
+            <div
+              className="absolute inset-0 -z-10 scale-125 rounded-full blur-3xl"
+              style={{ background: "radial-gradient(circle, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0) 70%)" }}
+            />
+            <Image
+              src="/logo-svb-full.png"
+              alt="SVB Osteomassagem"
+              width={947}
+              height={793}
+              className="w-full drop-shadow-[0_25px_45px_rgba(0,10,25,0.45)]"
+              priority
+            />
+          </div>
         </div>
 
         <div className="relative z-10 px-12 pb-14">
