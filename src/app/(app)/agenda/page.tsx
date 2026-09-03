@@ -2,29 +2,43 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { requireUser } from "@/lib/auth";
 import { getActiveClinicId } from "@/lib/clinic";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { NovaConsultaForm } from "./form";
-import { StatusSelect } from "./status-select";
-import { ChevronLeft, ChevronRight, Stethoscope } from "lucide-react";
+import { DayView } from "./day-view";
+import { WeekView } from "./week-view";
+import { MonthView } from "./month-view";
+import { ViewTabs } from "./view-tabs";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { getNavDates, getQueryRange, parseDateStr, parseView, toISODate } from "./date-utils";
+import type { AgendaView } from "./date-utils";
 import type { Appointment } from "@/types/database";
 
-function dayBounds(dateStr: string) {
-  const start = new Date(`${dateStr}T00:00:00`);
-  const end = new Date(start);
-  end.setDate(end.getDate() + 1);
-  return { start, end };
+function headerTitle(view: AgendaView, refDate: Date, rangeStart: Date, rangeEnd: Date) {
+  if (view === "day") {
+    return new Intl.DateTimeFormat("pt-PT", { dateStyle: "full" }).format(refDate);
+  }
+  if (view === "week") {
+    const lastDay = new Date(rangeEnd);
+    lastDay.setDate(lastDay.getDate() - 1);
+    const sameMonth = rangeStart.getMonth() === lastDay.getMonth();
+    const start = new Intl.DateTimeFormat("pt-PT", { day: "numeric", month: sameMonth ? undefined : "long" }).format(rangeStart);
+    const end = new Intl.DateTimeFormat("pt-PT", { day: "numeric", month: "long", year: "numeric" }).format(lastDay);
+    return `${start} – ${end}`;
+  }
+  return new Intl.DateTimeFormat("pt-PT", { month: "long", year: "numeric" }).format(refDate);
 }
 
 export default async function AgendaPage({
   searchParams,
 }: {
-  searchParams: Promise<{ date?: string }>;
+  searchParams: Promise<{ date?: string; view?: string }>;
 }) {
   const { profile } = await requireUser();
-  const { date } = await searchParams;
-  const dateStr = date || new Date().toISOString().slice(0, 10);
-  const { start, end } = dayBounds(dateStr);
+  const { date, view: viewParam } = await searchParams;
+  const view = parseView(viewParam);
+  const dateStr = date || toISODate(new Date());
+  const refDate = parseDateStr(dateStr);
+  const { start, end } = getQueryRange(view, refDate);
 
   const supabase = await createClient();
   const activeClinicId = await getActiveClinicId();
@@ -64,79 +78,47 @@ export default async function AgendaPage({
   }
 
   const { data: appointments } = await apptQuery;
+  const list = (appointments as unknown as Appointment[]) ?? [];
 
-  const prevDate = new Date(start);
-  prevDate.setDate(prevDate.getDate() - 1);
-  const nextDate = new Date(start);
-  nextDate.setDate(nextDate.getDate() + 1);
-  const toISO = (d: Date) => d.toISOString().slice(0, 10);
+  const { prev, next, today } = getNavDates(view, refDate);
 
   return (
     <div className="p-8 max-w-6xl">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-semibold">Agenda</h1>
-          <p className="text-sm text-foreground-soft mt-1">
-            {new Intl.DateTimeFormat("pt-PT", { dateStyle: "full" }).format(start)}
+          <p className="text-sm text-foreground-soft mt-1 capitalize">
+            {headerTitle(view, refDate, start, end)}
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Link href={`/agenda?date=${toISO(prevDate)}`}>
-            <Button variant="secondary" size="icon">
-              <ChevronLeft size={16} />
-            </Button>
-          </Link>
-          <Link href={`/agenda?date=${toISO(new Date())}`}>
-            <Button variant="secondary" size="sm">
-              Hoje
-            </Button>
-          </Link>
-          <Link href={`/agenda?date=${toISO(nextDate)}`}>
-            <Button variant="secondary" size="icon">
-              <ChevronRight size={16} />
-            </Button>
-          </Link>
+        <div className="flex items-center gap-3">
+          <ViewTabs view={view} date={dateStr} />
+          <div className="flex items-center gap-2">
+            <Link href={`/agenda?view=${view}&date=${toISODate(prev)}`}>
+              <Button variant="secondary" size="icon">
+                <ChevronLeft size={16} />
+              </Button>
+            </Link>
+            <Link href={`/agenda?view=${view}&date=${toISODate(today)}`}>
+              <Button variant="secondary" size="sm">
+                Hoje
+              </Button>
+            </Link>
+            <Link href={`/agenda?view=${view}&date=${toISODate(next)}`}>
+              <Button variant="secondary" size="icon">
+                <ChevronRight size={16} />
+              </Button>
+            </Link>
+          </div>
         </div>
       </div>
 
       <div className="grid grid-cols-3 gap-6">
-        <Card className="col-span-2">
-          <CardContent className="p-0">
-            {!appointments || appointments.length === 0 ? (
-              <p className="px-5 py-14 text-center text-sm text-foreground-faint">
-                Sem consultas agendadas neste dia.
-              </p>
-            ) : (
-              <ul className="divide-y divide-line">
-                {(appointments as unknown as Appointment[]).map((a) => (
-                  <li key={a.id} className="flex items-center gap-4 px-5 py-3.5">
-                    <div
-                      className="w-1 self-stretch rounded-full"
-                      style={{ backgroundColor: a.professionals?.color_hex ?? "#0d7a68" }}
-                    />
-                    <div className="w-16 shrink-0 text-sm font-medium tabular-nums">
-                      {new Intl.DateTimeFormat("pt-PT", { timeStyle: "short" }).format(
-                        new Date(a.starts_at)
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{a.patients?.full_name}</p>
-                      <p className="text-[12.5px] text-foreground-faint truncate">
-                        {a.rooms?.name} · {a.professionals?.users?.full_name} · {a.duration_min} min
-                      </p>
-                    </div>
-                    <StatusSelect appointmentId={a.id} status={a.status} />
-                    <Link href={`/consultas/${a.id}`}>
-                      <Button variant="secondary" size="sm">
-                        <Stethoscope size={14} /> Consulta
-                      </Button>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </CardContent>
-        </Card>
+        <div className="col-span-2">
+          {view === "day" && <DayView appointments={list} />}
+          {view === "week" && <WeekView weekStart={start} appointments={list} />}
+          {view === "month" && <MonthView monthDate={refDate} appointments={list} />}
+        </div>
 
         <NovaConsultaForm
           date={dateStr}
