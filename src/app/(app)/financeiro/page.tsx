@@ -9,7 +9,7 @@ export default async function FinanceiroPage() {
   const supabase = await createClient();
   const { data: payments } = await supabase
     .from("payments")
-    .select("*, patients(full_name)")
+    .select("*, patients(full_name), clinics(name)")
     .order("created_at", { ascending: false })
     .limit(50);
 
@@ -28,7 +28,9 @@ export default async function FinanceiroPage() {
               {payments.map((p) => (
                 <li key={p.id} className="flex items-center justify-between px-5 py-3">
                   <div>
-                    <p className="text-sm font-medium">{p.patients?.full_name}</p>
+                    <p className="text-sm font-medium">
+                      {p.patients?.full_name ?? p.clinics?.name ?? "—"}
+                    </p>
                     <p className="text-[12.5px] text-foreground-faint">{formatDate(p.created_at)}</p>
                   </div>
                   <div className="flex items-center gap-3">
