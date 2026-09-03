@@ -41,15 +41,24 @@ export default async function AgendaPage({
   const { start, end } = getQueryRange(view, refDate);
 
   const supabase = await createClient();
-  const activeClinicId = await getActiveClinicId();
 
+  // Fase 1 — tudo o que não depende de nada mais, em paralelo.
+  const [activeClinicId, { data: professionals }, ownProfResult] = await Promise.all([
+    getActiveClinicId(),
+    supabase.from("professionals").select("id, users(full_name)").eq("active", true),
+    profile.role === "professional"
+      ? supabase.from("professionals").select("id").eq("user_id", profile.id).single()
+      : Promise.resolve({ data: null }),
+  ]);
+  const ownProfessionalId = ownProfResult.data?.id ?? null;
+
+  // Fase 2 — depende da clínica ativa e (se profissional) do próprio id.
   let apptQuery = supabase
     .from("appointments")
     .select("*, patients(id, full_name), professionals(id, color_hex, users(full_name)), rooms(id, name)")
     .gte("starts_at", start.toISOString())
     .lt("starts_at", end.toISOString())
     .order("starts_at");
-
   let patientsQuery = supabase.from("patients").select("id, full_name").order("full_name");
   let roomsQuery = supabase.from("rooms").select("id, name").eq("active", true).order("name");
 
@@ -58,26 +67,13 @@ export default async function AgendaPage({
     patientsQuery = patientsQuery.eq("clinic_id", activeClinicId);
     roomsQuery = roomsQuery.eq("clinic_id", activeClinicId);
   }
+  if (ownProfessionalId) apptQuery = apptQuery.eq("professional_id", ownProfessionalId);
 
-  const { data: patients } = await patientsQuery;
-  const { data: rooms } = await roomsQuery;
-  const { data: professionals } = await supabase
-    .from("professionals")
-    .select("id, users(full_name)")
-    .eq("active", true);
-
-  let ownProfessionalId: string | null = null;
-  if (profile.role === "professional") {
-    const { data: prof } = await supabase
-      .from("professionals")
-      .select("id")
-      .eq("user_id", profile.id)
-      .single();
-    ownProfessionalId = prof?.id ?? null;
-    if (ownProfessionalId) apptQuery = apptQuery.eq("professional_id", ownProfessionalId);
-  }
-
-  const { data: appointments } = await apptQuery;
+  const [{ data: patients }, { data: rooms }, { data: appointments }] = await Promise.all([
+    patientsQuery,
+    roomsQuery,
+    apptQuery,
+  ]);
   const list = (appointments as unknown as Appointment[]) ?? [];
 
   const { prev, next, today } = getNavDates(view, refDate);

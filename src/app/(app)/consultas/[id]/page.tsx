@@ -20,19 +20,18 @@ export default async function ConsultaPage({
   const { profile } = await requireUser();
   const supabase = await createClient();
 
-  const { data: appointment } = await supabase
-    .from("appointments")
-    .select("id, patient_id, status, patients(id, full_name)")
-    .eq("id", appointmentId)
-    .single();
+  const [{ data: appointment }, { data: existingConsultation }] = await Promise.all([
+    supabase
+      .from("appointments")
+      .select("id, patient_id, status, patients(id, full_name)")
+      .eq("id", appointmentId)
+      .single(),
+    supabase.from("consultations").select("*").eq("appointment_id", appointmentId).maybeSingle(),
+  ]);
 
   if (!appointment) notFound();
 
-  let { data: consultation } = await supabase
-    .from("consultations")
-    .select("*")
-    .eq("appointment_id", appointmentId)
-    .maybeSingle();
+  let consultation = existingConsultation;
 
   if (!consultation) {
     const { data: created, error } = await supabase
