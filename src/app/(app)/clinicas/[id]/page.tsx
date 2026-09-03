@@ -16,15 +16,17 @@ export default async function ClinicaDetailPage({
   await requireAdmin();
   const supabase = await createClient();
 
-  const { data: clinic } = await supabase.from("clinics").select("*").eq("id", id).single();
-  if (!clinic) notFound();
+  const [{ data: clinic }, { data: payments }] = await Promise.all([
+    supabase.from("clinics").select("*").eq("id", id).single(),
+    supabase
+      .from("payments")
+      .select("*")
+      .eq("clinic_id", id)
+      .order("paid_at", { ascending: false, nullsFirst: false })
+      .order("created_at", { ascending: false }),
+  ]);
 
-  const { data: payments } = await supabase
-    .from("payments")
-    .select("*")
-    .eq("clinic_id", id)
-    .order("paid_at", { ascending: false, nullsFirst: false })
-    .order("created_at", { ascending: false });
+  if (!clinic) notFound();
 
   return (
     <div className="p-8 max-w-3xl">

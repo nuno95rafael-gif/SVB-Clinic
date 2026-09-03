@@ -31,35 +31,27 @@ export default async function PacienteDetailPage({
   await requireUser();
   const supabase = await createClient();
 
-  const { data: patient } = await supabase
-    .from("patients")
-    .select("*, professionals(id, users(full_name))")
-    .eq("id", id)
-    .single();
+  const [{ data: patient }, { data: clinicalRecord }, { data: appointments }, { data: painData }] =
+    await Promise.all([
+      supabase.from("patients").select("*, professionals(id, users(full_name))").eq("id", id).single(),
+      supabase.from("clinical_records").select("*").eq("patient_id", id).single(),
+      supabase
+        .from("appointments")
+        .select("id, starts_at, status, type, rooms(name)")
+        .eq("patient_id", id)
+        .order("starts_at", { ascending: false }),
+      tab === "corpo"
+        ? supabase
+            .from("pain_assessments")
+            .select("*")
+            .eq("patient_id", id)
+            .order("recorded_at", { ascending: true })
+        : Promise.resolve({ data: null }),
+    ]);
 
   if (!patient) notFound();
 
-  const { data: clinicalRecord } = await supabase
-    .from("clinical_records")
-    .select("*")
-    .eq("patient_id", id)
-    .single();
-
-  const { data: appointments } = await supabase
-    .from("appointments")
-    .select("id, starts_at, status, type, rooms(name)")
-    .eq("patient_id", id)
-    .order("starts_at", { ascending: false });
-
-  let painPoints: PainAssessment[] = [];
-  if (tab === "corpo") {
-    const { data } = await supabase
-      .from("pain_assessments")
-      .select("*")
-      .eq("patient_id", id)
-      .order("recorded_at", { ascending: true });
-    painPoints = (data as PainAssessment[]) ?? [];
-  }
+  const painPoints = (painData as PainAssessment[] | null) ?? [];
 
   const nextAppointment = appointments?.find(
     (a) => new Date(a.starts_at) > new Date() && a.status !== "cancelled"
