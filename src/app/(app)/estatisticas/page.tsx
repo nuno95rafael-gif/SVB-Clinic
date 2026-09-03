@@ -48,7 +48,9 @@ export default async function EstatisticasPage() {
     patients?: { clinic_id: string | null } | null;
   };
 
-  const paidPayments = ((payments as PaymentRow[]) ?? []).filter((p) => p.status === "paid");
+  const paidPayments = ((payments as unknown as PaymentRow[]) ?? []).filter(
+    (p) => p.status === "paid"
+  );
 
   // buckets mensais
   const months = Array.from({ length: MONTHS_BACK }, (_, i) =>
