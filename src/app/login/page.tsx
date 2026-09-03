@@ -19,17 +19,13 @@ export default async function LoginPage({
         }}
       >
         <div className="relative z-10 flex flex-1 flex-col items-center justify-center px-12">
-          <div className="relative flex w-full max-w-md items-center justify-center">
-            <div
-              className="absolute inset-0 -z-10 scale-125 rounded-full blur-3xl"
-              style={{ background: "radial-gradient(circle, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0) 70%)" }}
-            />
+          <div className="w-full max-w-md rounded-[32px] bg-white/97 px-10 py-9 shadow-[0_30px_60px_rgba(0,10,30,0.35)]">
             <Image
               src="/logo-svb-full.png"
               alt="SVB Osteomassagem"
               width={947}
               height={793}
-              className="w-full drop-shadow-[0_25px_45px_rgba(0,10,25,0.45)]"
+              className="w-full"
               priority
             />
           </div>
