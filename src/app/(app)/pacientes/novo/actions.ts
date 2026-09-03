@@ -4,6 +4,7 @@ import { z } from "zod";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { requireUser } from "@/lib/auth";
+import { getActiveClinicId } from "@/lib/clinic";
 
 const schema = z.object({
   full_name: z.string().min(2, "Indique o nome completo."),
@@ -45,12 +46,12 @@ export async function createPatient(
     professionalId = prof?.id ?? null;
   }
 
-  const { data: clinic } = await supabase.from("clinics").select("id").limit(1).single();
+  const clinicId = await getActiveClinicId();
 
   const { data: patient, error } = await supabase
     .from("patients")
     .insert({
-      clinic_id: clinic?.id,
+      clinic_id: clinicId,
       professional_id: professionalId,
       full_name: parsed.data.full_name,
       birth_date: parsed.data.birth_date || null,

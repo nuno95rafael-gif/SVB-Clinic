@@ -11,6 +11,7 @@ import {
   BarChart3,
   Wallet,
   DoorOpen,
+  Building2,
   UserCog,
   Settings,
   LogOut,
@@ -18,6 +19,7 @@ import {
 import { cn, initials } from "@/lib/utils";
 import type { UserProfile, UserRole } from "@/types/database";
 import { signOut } from "@/app/(app)/actions";
+import { ClinicSwitcher } from "./clinic-switcher";
 
 const NAV: {
   href: string;
@@ -31,12 +33,21 @@ const NAV: {
   { href: "/estatisticas", label: "Estatísticas", icon: BarChart3, roles: ["admin"] },
   { href: "/financeiro", label: "Financeiro", icon: Wallet, roles: ["admin"] },
   { href: "/espacos", label: "Espaços", icon: DoorOpen, roles: ["admin"] },
+  { href: "/clinicas", label: "Clínicas", icon: Building2, roles: ["admin"] },
   { href: "/profissionais", label: "Profissionais", icon: Stethoscope, roles: ["admin"] },
   { href: "/utilizadores", label: "Utilizadores", icon: UserCog, roles: ["admin"] },
   { href: "/definicoes", label: "Definições", icon: Settings, roles: ["admin", "professional"] },
 ] as const;
 
-export function Sidebar({ profile }: { profile: UserProfile }) {
+export function Sidebar({
+  profile,
+  clinics = [],
+  activeClinicId = null,
+}: {
+  profile: UserProfile;
+  clinics?: { id: string; name: string }[];
+  activeClinicId?: string | null;
+}) {
   const pathname = usePathname();
 
   return (
@@ -52,6 +63,8 @@ export function Sidebar({ profile }: { profile: UserProfile }) {
         />
         <span className="font-semibold">SVB Clinic</span>
       </div>
+
+      <ClinicSwitcher clinics={clinics} activeClinicId={activeClinicId} />
 
       <nav className="flex-1 space-y-0.5 px-3">
         {NAV.filter((item) => item.roles.includes(profile.role)).map((item) => {

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { requireUser } from "@/lib/auth";
+import { getActiveClinicId } from "@/lib/clinic";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -17,12 +18,14 @@ export default async function PacientesPage({
   const { q, status } = await searchParams;
   await requireUser(); // garante sessão — o âmbito por profissional é aplicado pela RLS
   const supabase = await createClient();
+  const activeClinicId = await getActiveClinicId();
 
   let query = supabase
     .from("patients")
     .select("*, professionals(id, color_hex, users(full_name))")
     .order("full_name", { ascending: true });
 
+  if (activeClinicId) query = query.eq("clinic_id", activeClinicId);
   if (q) query = query.ilike("full_name", `%${q}%`);
   if (status) query = query.eq("status", status);
 

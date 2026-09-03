@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { requireUser } from "@/lib/auth";
+import { getActiveClinicId } from "@/lib/clinic";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatDateTime, formatCurrency } from "@/lib/utils";
@@ -9,6 +10,7 @@ import type { Appointment } from "@/types/database";
 export default async function DashboardPage() {
   const { profile } = await requireUser();
   const supabase = await createClient();
+  const activeClinicId = await getActiveClinicId();
 
   const startOfToday = new Date();
   startOfToday.setHours(0, 0, 0, 0);
@@ -34,6 +36,12 @@ export default async function DashboardPage() {
   let patientsQuery = supabase
     .from("patients")
     .select("id, status, registered_at", { count: "exact" });
+
+  if (activeClinicId) {
+    todayQuery = todayQuery.eq("clinic_id", activeClinicId);
+    monthQuery = monthQuery.eq("clinic_id", activeClinicId);
+    patientsQuery = patientsQuery.eq("clinic_id", activeClinicId);
+  }
 
   if (profile.role === "professional") {
     const { data: prof } = await supabase

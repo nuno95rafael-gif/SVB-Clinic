@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { requireUser } from "@/lib/auth";
+import { getActiveClinicId } from "@/lib/clinic";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { NovaConsultaForm } from "./form";
@@ -26,6 +27,7 @@ export default async function AgendaPage({
   const { start, end } = dayBounds(dateStr);
 
   const supabase = await createClient();
+  const activeClinicId = await getActiveClinicId();
 
   let apptQuery = supabase
     .from("appointments")
@@ -34,8 +36,17 @@ export default async function AgendaPage({
     .lt("starts_at", end.toISOString())
     .order("starts_at");
 
-  const { data: patients } = await supabase.from("patients").select("id, full_name").order("full_name");
-  const { data: rooms } = await supabase.from("rooms").select("id, name").eq("active", true).order("name");
+  let patientsQuery = supabase.from("patients").select("id, full_name").order("full_name");
+  let roomsQuery = supabase.from("rooms").select("id, name").eq("active", true).order("name");
+
+  if (activeClinicId) {
+    apptQuery = apptQuery.eq("clinic_id", activeClinicId);
+    patientsQuery = patientsQuery.eq("clinic_id", activeClinicId);
+    roomsQuery = roomsQuery.eq("clinic_id", activeClinicId);
+  }
+
+  const { data: patients } = await patientsQuery;
+  const { data: rooms } = await roomsQuery;
   const { data: professionals } = await supabase
     .from("professionals")
     .select("id, users(full_name)")

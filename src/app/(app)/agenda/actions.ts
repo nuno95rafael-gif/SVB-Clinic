@@ -4,6 +4,7 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requireUser } from "@/lib/auth";
+import { getActiveClinicId } from "@/lib/clinic";
 
 const schema = z.object({
   patient_id: z.string().uuid("Selecione um paciente."),
@@ -38,11 +39,11 @@ export async function createAppointment(
   }
 
   const supabase = await createClient();
-  const { data: clinic } = await supabase.from("clinics").select("id").limit(1).single();
+  const clinicId = await getActiveClinicId();
   const starts_at = new Date(`${parsed.data.date}T${parsed.data.time}:00`).toISOString();
 
   const { error } = await supabase.from("appointments").insert({
-    clinic_id: clinic?.id,
+    clinic_id: clinicId,
     patient_id: parsed.data.patient_id,
     professional_id: parsed.data.professional_id,
     room_id: parsed.data.room_id,
