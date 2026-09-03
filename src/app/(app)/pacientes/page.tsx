@@ -3,11 +3,10 @@ import { createClient } from "@/lib/supabase/server";
 import { requireUser } from "@/lib/auth";
 import { getActiveClinicId } from "@/lib/clinic";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { formatDate, initials } from "@/lib/utils";
 import { Plus, Search } from "lucide-react";
+import { PatientRow } from "./patient-row";
 import type { Patient } from "@/types/database";
 
 export default async function PacientesPage({
@@ -16,7 +15,7 @@ export default async function PacientesPage({
   searchParams: Promise<{ q?: string; status?: string }>;
 }) {
   const { q, status } = await searchParams;
-  await requireUser(); // garante sessão — o âmbito por profissional é aplicado pela RLS
+  const { profile } = await requireUser(); // garante sessão — o âmbito por profissional é aplicado pela RLS
   const supabase = await createClient();
   const activeClinicId = await getActiveClinicId();
 
@@ -29,7 +28,12 @@ export default async function PacientesPage({
   if (q) query = query.ilike("full_name", `%${q}%`);
   if (status) query = query.eq("status", status);
 
-  const { data: patients, error } = await query;
+  const [{ data: patients, error }, { data: professionals }] = await Promise.all([
+    query,
+    profile.role === "admin"
+      ? supabase.from("professionals").select("id, users(full_name)").eq("active", true)
+      : Promise.resolve({ data: null }),
+  ]);
 
   return (
     <div className="p-8 max-w-6xl">
@@ -91,30 +95,19 @@ export default async function PacientesPage({
                 <th className="px-5 py-3 font-medium">Profissional</th>
                 <th className="px-5 py-3 font-medium">Registo</th>
                 <th className="px-5 py-3 font-medium">Estado</th>
+                <th className="px-5 py-3 font-medium">Ações</th>
               </tr>
             </thead>
             <tbody>
               {(patients as unknown as Patient[]).map((p) => (
-                <tr key={p.id} className="border-b border-line last:border-0 hover:bg-background">
-                  <td className="px-5 py-3">
-                    <Link href={`/pacientes/${p.id}`} className="flex items-center gap-3">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-accent-soft text-[11px] font-semibold text-accent-ink">
-                        {initials(p.full_name)}
-                      </div>
-                      <span className="font-medium">{p.full_name}</span>
-                    </Link>
-                  </td>
-                  <td className="px-5 py-3 text-foreground-soft">{p.phone || p.email || "—"}</td>
-                  <td className="px-5 py-3 text-foreground-soft">
-                    {p.professionals?.users?.full_name ?? "—"}
-                  </td>
-                  <td className="px-5 py-3 text-foreground-soft">{formatDate(p.registered_at)}</td>
-                  <td className="px-5 py-3">
-                    <Badge tone={p.status === "active" ? "accent" : "neutral"}>
-                      {p.status === "active" ? "Ativo" : "Inativo"}
-                    </Badge>
-                  </td>
-                </tr>
+                <PatientRow
+                  key={p.id}
+                  patient={p}
+                  professionals={
+                    (professionals as unknown as { id: string; users: { full_name: string } }[]) ?? []
+                  }
+                  isAdmin={profile.role === "admin"}
+                />
               ))}
             </tbody>
           </table>
