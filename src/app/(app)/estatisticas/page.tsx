@@ -114,7 +114,7 @@ export default async function EstatisticasPage() {
           <CardContent>
             <RevenueChart
               data={chartData}
-              clinicNames={clinicList.map((c) => c.name)}
+              clinicNames={clinicList.map((c) => c.name).filter((name) => revenueByClinic.has(name))}
               colors={CLINIC_COLORS}
             />
           </CardContent>
