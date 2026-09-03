@@ -78,3 +78,14 @@ export function isSameDate(a: Date, b: Date) {
 export function isSameMonthAs(a: Date, b: Date) {
   return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth();
 }
+
+// Combina os inputs <date>/<time> num instante UTC usando o fuso horário do
+// BROWSER (o mesmo que mostra as horas ao utilizador) — em vez de deixar o
+// servidor interpretar "AAAA-MM-DDTHH:MM" sem offset, que o Node lê como o
+// seu próprio fuso (UTC na Vercel) e desalinha a hora sempre que o browser
+// está noutro fuso (ex.: Europe/Lisbon em horário de verão).
+export function toStartsAtISO(dateStr: string, timeStr: string) {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  const [hh, mm] = timeStr.split(":").map(Number);
+  return new Date(y, m - 1, d, hh, mm).toISOString();
+}

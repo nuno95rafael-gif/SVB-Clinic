@@ -10,8 +10,11 @@ const schema = z.object({
   patient_id: z.string().uuid("Selecione um paciente."),
   professional_id: z.string().uuid("Selecione um profissional."),
   room_id: z.string().uuid("Selecione um espaço."),
-  date: z.string().min(1, "Selecione a data."),
-  time: z.string().min(1, "Selecione a hora."),
+  // Já vem como ISO UTC calculado no browser (ver toStartsAtISO em
+  // date-utils.ts) — não se reconstrói data+hora no servidor, porque o
+  // Node/Vercel interpreta "AAAA-MM-DDTHH:MM" sem offset no seu próprio
+  // fuso (UTC), o que desalinha a hora sempre que o browser está noutro.
+  starts_at: z.string().refine((v) => !isNaN(Date.parse(v)), "Data/hora inválida."),
   duration_min: z.coerce.number().int().min(5).max(480),
   type: z.string().min(1),
   notes: z.string().optional(),
@@ -27,8 +30,7 @@ export async function createAppointment(
     patient_id: formData.get("patient_id"),
     professional_id: formData.get("professional_id"),
     room_id: formData.get("room_id"),
-    date: formData.get("date"),
-    time: formData.get("time"),
+    starts_at: formData.get("starts_at"),
     duration_min: formData.get("duration_min"),
     type: formData.get("type"),
     notes: formData.get("notes") || undefined,
@@ -40,14 +42,13 @@ export async function createAppointment(
 
   const supabase = await createClient();
   const clinicId = await getActiveClinicId();
-  const starts_at = new Date(`${parsed.data.date}T${parsed.data.time}:00`).toISOString();
 
   const { error } = await supabase.from("appointments").insert({
     clinic_id: clinicId,
     patient_id: parsed.data.patient_id,
     professional_id: parsed.data.professional_id,
     room_id: parsed.data.room_id,
-    starts_at,
+    starts_at: parsed.data.starts_at,
     duration_min: parsed.data.duration_min,
     type: parsed.data.type,
     notes: parsed.data.notes || null,
@@ -91,8 +92,7 @@ export async function updateAppointment(
     patient_id: formData.get("patient_id"),
     professional_id: formData.get("professional_id"),
     room_id: formData.get("room_id"),
-    date: formData.get("date"),
-    time: formData.get("time"),
+    starts_at: formData.get("starts_at"),
     duration_min: formData.get("duration_min"),
     type: formData.get("type"),
     notes: formData.get("notes") || undefined,
@@ -103,7 +103,6 @@ export async function updateAppointment(
   }
 
   const supabase = await createClient();
-  const starts_at = new Date(`${parsed.data.date}T${parsed.data.time}:00`).toISOString();
 
   const { error } = await supabase
     .from("appointments")
@@ -111,7 +110,7 @@ export async function updateAppointment(
       patient_id: parsed.data.patient_id,
       professional_id: parsed.data.professional_id,
       room_id: parsed.data.room_id,
-      starts_at,
+      starts_at: parsed.data.starts_at,
       duration_min: parsed.data.duration_min,
       type: parsed.data.type,
       notes: parsed.data.notes || null,

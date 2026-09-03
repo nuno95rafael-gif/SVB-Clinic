@@ -1,13 +1,13 @@
 "use client";
 
-import { useActionState, useEffect, useState, useTransition } from "react";
+import { useActionState, useEffect, useRef, useState, useTransition } from "react";
 import { Pencil, Trash2, Stethoscope } from "lucide-react";
 import Link from "next/link";
 import { updateAppointment, deleteAppointment } from "./actions";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Select } from "@/components/ui/input";
 import { StatusSelect } from "./status-select";
-import { toISODate } from "./date-utils";
+import { toISODate, toStartsAtISO } from "./date-utils";
 import type { Appointment } from "@/types/database";
 
 function toHHMM(d: Date) {
@@ -39,12 +39,24 @@ export function AppointmentRow({
   }, [state.saved]);
 
   const startsAt = new Date(a.starts_at);
+  const dateRef = useRef<HTMLInputElement>(null);
+  const timeRef = useRef<HTMLInputElement>(null);
+  const startsAtRef = useRef<HTMLInputElement>(null);
 
   if (editing) {
     return (
       <li className="px-5 py-3.5">
-        <form action={formAction} className="space-y-2.5">
+        <form
+          action={formAction}
+          onSubmit={() => {
+            if (startsAtRef.current && dateRef.current && timeRef.current) {
+              startsAtRef.current.value = toStartsAtISO(dateRef.current.value, timeRef.current.value);
+            }
+          }}
+          className="space-y-2.5"
+        >
           <input type="hidden" name="appointment_id" value={a.id} />
+          <input type="hidden" name="starts_at" ref={startsAtRef} />
 
           <div className="grid grid-cols-2 gap-2.5">
             <div>
@@ -80,7 +92,7 @@ export function AppointmentRow({
               <Label htmlFor={`date-${a.id}`}>Data</Label>
               <Input
                 id={`date-${a.id}`}
-                name="date"
+                ref={dateRef}
                 type="date"
                 defaultValue={toISODate(startsAt)}
                 required
@@ -90,7 +102,7 @@ export function AppointmentRow({
               <Label htmlFor={`time-${a.id}`}>Hora</Label>
               <Input
                 id={`time-${a.id}`}
-                name="time"
+                ref={timeRef}
                 type="time"
                 defaultValue={toHHMM(startsAt)}
                 required
