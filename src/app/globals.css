@@ -1,0 +1,65 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f4f6f9;
+  --surface: #ffffff;
+  --foreground: #16212c;
+  --foreground-soft: #4b5b68;
+  --foreground-faint: #7c8b93;
+  --line: #dbe2e9;
+  --line-strong: #c3ced8;
+  --accent: #0d5ba8;
+  --accent-ink: #073d73;
+  --accent-soft: #e6eef9;
+  --amber: #a8701f;
+  --amber-soft: #f5ead6;
+  --rose: #a53f4f;
+  --rose-soft: #f6e6e8;
+  --radius: 10px;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-foreground: var(--foreground);
+  --color-foreground-soft: var(--foreground-soft);
+  --color-foreground-faint: var(--foreground-faint);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-accent-soft: var(--accent-soft);
+  --color-amber: var(--amber);
+  --color-amber-soft: var(--amber-soft);
+  --color-rose: var(--rose);
+  --color-rose-soft: var(--rose-soft);
+  --radius-md: var(--radius);
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, "Segoe UI", Roboto, Helvetica, Arial,
+    sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #10161b;
+    --surface: #182029;
+    --foreground: #e8edf0;
+    --foreground-soft: #a8b8bf;
+    --foreground-faint: #728089;
+    --line: #2a343d;
+    --line-strong: #3a4650;
+    --accent: #4b9ce8;
+    --accent-ink: #a9d3f7;
+    --accent-soft: #142943;
+    --amber: #e0a752;
+    --amber-soft: #2e2415;
+    --rose: #e0748a;
+    --rose-soft: #2e181d;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+}
