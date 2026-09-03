@@ -7,7 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { cn, formatDate, formatDateTime, initials } from "@/lib/utils";
 import { ResumoTab } from "./resumo-tab";
 import { HistoriaTab } from "./historia-tab";
-import type { Appointment } from "@/types/database";
+import { EvolucaoTab } from "./evolucao-tab";
+import type { Appointment, PainAssessment } from "@/types/database";
 
 const TABS = [
   { key: "resumo", label: "Resumo" },
@@ -49,6 +50,16 @@ export default async function PacienteDetailPage({
     .select("id, starts_at, status, type, rooms(name)")
     .eq("patient_id", id)
     .order("starts_at", { ascending: false });
+
+  let painPoints: PainAssessment[] = [];
+  if (tab === "corpo") {
+    const { data } = await supabase
+      .from("pain_assessments")
+      .select("*")
+      .eq("patient_id", id)
+      .order("recorded_at", { ascending: true });
+    painPoints = (data as PainAssessment[]) ?? [];
+  }
 
   const nextAppointment = appointments?.find(
     (a) => new Date(a.starts_at) > new Date() && a.status !== "cancelled"
@@ -140,11 +151,11 @@ export default async function PacienteDetailPage({
         </Card>
       )}
 
-      {(tab === "corpo" || tab === "documentos" || tab === "financeiro") && (
+      {tab === "corpo" && <EvolucaoTab points={painPoints} />}
+
+      {(tab === "documentos" || tab === "financeiro") && (
         <Card>
           <CardContent className="py-10 text-center text-sm text-foreground-faint">
-            {tab === "corpo" &&
-              "O mapa corporal e a dor são registados por consulta — abra uma consulta na tab acima para marcar ou consultar. Gráfico de evolução comparando todas as consultas: planeado a seguir."}
             {tab === "documentos" && "Upload de documentos — planeado para a Fase 3."}
             {tab === "financeiro" && "Histórico de pagamentos deste paciente — planeado para a Fase 3."}
           </CardContent>
