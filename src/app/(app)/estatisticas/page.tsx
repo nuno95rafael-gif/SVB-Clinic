@@ -40,17 +40,19 @@ export default async function EstatisticasPage() {
   const clinicList = clinics ?? [];
 
   type PaymentRow = {
-    amount: number;
+    amount: string | number;
     status: string;
     paid_at: string | null;
     created_at: string;
     clinic_id: string | null;
-    patients?: { clinic_id: string | null } | null;
+    patients?: { clinic_id: string | null }[] | null;
   };
 
-  const paidPayments = ((payments as unknown as PaymentRow[]) ?? []).filter(
-    (p) => p.status === "paid"
-  );
+  // payments.amount é numeric(10,2) — o PostgREST devolve-o como string, por
+  // isso converte-se logo aqui para evitar concatenação em vez de soma.
+  const paidPayments = ((payments as unknown as PaymentRow[]) ?? [])
+    .filter((p) => p.status === "paid")
+    .map((p) => ({ ...p, amount: Number(p.amount), clinicId: p.clinic_id ?? p.patients?.[0]?.clinic_id ?? null }));
 
   // buckets mensais
   const months = Array.from({ length: MONTHS_BACK }, (_, i) =>
@@ -68,8 +70,7 @@ export default async function EstatisticasPage() {
     for (const p of paidPayments) {
       const d = new Date(p.paid_at ?? p.created_at);
       if (d >= monthStart && d < monthEnd) {
-        const clinicId = p.clinic_id ?? p.patients?.clinic_id ?? null;
-        const name = clinicId ? clinicNameById.get(clinicId) ?? "Outro" : "Outro";
+        const name = p.clinicId ? clinicNameById.get(p.clinicId) ?? "Outro" : "Outro";
         row[name] = (Number(row[name]) || 0) + p.amount;
       }
     }
@@ -79,8 +80,7 @@ export default async function EstatisticasPage() {
   const totalRevenue = paidPayments.reduce((sum, p) => sum + p.amount, 0);
   const revenueByClinic = new Map<string, number>();
   for (const p of paidPayments) {
-    const clinicId = p.clinic_id ?? p.patients?.clinic_id ?? null;
-    const name = clinicId ? clinicNameById.get(clinicId) ?? "Outro" : "Outro";
+    const name = p.clinicId ? clinicNameById.get(p.clinicId) ?? "Outro" : "Outro";
     revenueByClinic.set(name, (revenueByClinic.get(name) ?? 0) + p.amount);
   }
 
