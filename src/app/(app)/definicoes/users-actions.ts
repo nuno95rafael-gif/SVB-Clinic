@@ -44,7 +44,7 @@ export async function inviteUser(_prevState: { error: string | null; ok: boolean
     });
   }
 
-  revalidatePath("/utilizadores");
+  revalidatePath("/definicoes");
   return { error: null, ok: true };
 }
 
@@ -52,5 +52,5 @@ export async function toggleUserActive(userId: string, active: boolean) {
   await requireAdmin();
   const admin = createAdminClient();
   await admin.from("users").update({ active }).eq("id", userId);
-  revalidatePath("/utilizadores");
+  revalidatePath("/definicoes");
 }

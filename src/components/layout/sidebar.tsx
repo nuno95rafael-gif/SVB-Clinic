@@ -12,10 +12,8 @@ import {
   Wallet,
   DoorOpen,
   Building2,
-  UserCog,
   Settings,
   LogOut,
-  ShieldCheck,
 } from "lucide-react";
 import { cn, initials } from "@/lib/utils";
 import type { UserProfile, UserRole } from "@/types/database";
@@ -36,8 +34,6 @@ const NAV: {
   { href: "/espacos", label: "Espaços", icon: DoorOpen, roles: ["admin"] },
   { href: "/clinicas", label: "Clínicas", icon: Building2, roles: ["admin"] },
   { href: "/profissionais", label: "Profissionais", icon: Stethoscope, roles: ["admin"] },
-  { href: "/utilizadores", label: "Utilizadores", icon: UserCog, roles: ["admin"] },
-  { href: "/auditoria", label: "Auditoria", icon: ShieldCheck, roles: ["admin"] },
   { href: "/definicoes", label: "Definições", icon: Settings, roles: ["admin", "professional"] },
 ] as const;
 
