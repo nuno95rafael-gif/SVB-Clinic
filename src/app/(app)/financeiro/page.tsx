@@ -2,16 +2,8 @@ import { createClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/auth";
 import { getActiveClinicId } from "@/lib/clinic";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { formatCurrency, formatDate } from "@/lib/utils";
 import { PaymentForm } from "./payment-form";
-
-const STATUS_LABELS: Record<string, string> = {
-  paid: "Pago",
-  pending: "Pendente",
-  cancelled: "Cancelado",
-  refunded: "Reembolsado",
-};
+import { PaymentRow } from "./payment-row";
 
 export default async function FinanceiroPage({
   searchParams,
@@ -54,20 +46,7 @@ export default async function FinanceiroPage({
             ) : (
               <ul className="divide-y divide-line">
                 {payments.map((p) => (
-                  <li key={p.id} className="flex items-center justify-between px-5 py-3">
-                    <div>
-                      <p className="text-sm font-medium">
-                        {p.patients?.full_name ?? p.clinics?.name ?? "—"}
-                      </p>
-                      <p className="text-[12.5px] text-foreground-faint">{formatDate(p.created_at)}</p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <span className="text-sm font-medium">{formatCurrency(p.amount)}</span>
-                      <Badge tone={p.status === "paid" ? "accent" : "amber"}>
-                        {STATUS_LABELS[p.status] ?? p.status}
-                      </Badge>
-                    </div>
-                  </li>
+                  <PaymentRow key={p.id} payment={p} />
                 ))}
               </ul>
             )}
