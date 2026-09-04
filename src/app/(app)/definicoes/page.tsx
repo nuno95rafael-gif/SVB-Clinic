@@ -25,52 +25,30 @@ export default async function DefinicoesPage() {
     <div className="p-8 max-w-5xl">
       <h1 className="text-2xl font-semibold mb-6">Definições</h1>
 
-      <div className={isAdmin ? "grid grid-cols-3 gap-6" : "max-w-2xl"}>
-        <div className={isAdmin ? "col-span-2 space-y-6" : "space-y-6"}>
-          <Card>
+      {isAdmin && (
+        <div className="grid grid-cols-3 gap-6">
+          <Card className="col-span-2">
             <CardHeader>
-              <CardTitle>Perfil</CardTitle>
+              <CardTitle>Utilizadores</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2 text-sm">
-              <p>
-                <span className="text-foreground-faint">Nome: </span>
-                {profile.full_name}
-              </p>
-              <p>
-                <span className="text-foreground-faint">Email: </span>
-                {profile.email}
-              </p>
-              <p>
-                <span className="text-foreground-faint">Papel: </span>
-                {profile.role === "admin" ? "Administrador" : "Profissional"}
-              </p>
+            <CardContent className="p-0">
+              {!users || users.length === 0 ? (
+                <p className="px-5 py-10 text-center text-sm text-foreground-faint">
+                  Ainda não há utilizadores.
+                </p>
+              ) : (
+                <ul className="divide-y divide-line">
+                  {(users as UserProfile[]).map((u) => (
+                    <UserRow key={u.id} user={u} isSelf={u.id === profile.id} />
+                  ))}
+                </ul>
+              )}
             </CardContent>
           </Card>
 
-          {isAdmin && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Utilizadores</CardTitle>
-              </CardHeader>
-              <CardContent className="p-0">
-                {!users || users.length === 0 ? (
-                  <p className="px-5 py-10 text-center text-sm text-foreground-faint">
-                    Ainda não há utilizadores.
-                  </p>
-                ) : (
-                  <ul className="divide-y divide-line">
-                    {(users as UserProfile[]).map((u) => (
-                      <UserRow key={u.id} user={u} isSelf={u.id === profile.id} />
-                    ))}
-                  </ul>
-                )}
-              </CardContent>
-            </Card>
-          )}
+          <InviteUserForm />
         </div>
-
-        {isAdmin && <InviteUserForm />}
-      </div>
+      )}
 
       {isAdmin && (
         <div className="mt-6">
