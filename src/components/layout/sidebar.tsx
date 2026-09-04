@@ -18,6 +18,7 @@ import { cn, initials } from "@/lib/utils";
 import type { UserProfile, UserRole } from "@/types/database";
 import { signOut } from "@/app/(app)/actions";
 import { ClinicSwitcher } from "./clinic-switcher";
+import { ThemeToggle } from "./theme-toggle";
 
 const NAV: {
   href: string;
@@ -95,6 +96,7 @@ export function Sidebar({
               {profile.role === "admin" ? "Administrador" : "Profissional"}
             </p>
           </div>
+          <ThemeToggle />
           <form action={signOut}>
             <button
               type="submit"

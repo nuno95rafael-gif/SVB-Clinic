@@ -234,7 +234,18 @@ export async function finishConsultation(consultationId: string, appointmentId: 
 
   if (appointmentError) return { error: appointmentError.message };
 
+  // Se ficou um valor definido ao marcar esta consulta, o pagamento associado
+  // ainda está "pending" — concluir a consulta é o momento natural de o dar
+  // como pago, para entrar já nas Estatísticas sem passo manual extra.
+  await supabase
+    .from("payments")
+    .update({ status: "paid", paid_at: new Date().toISOString() })
+    .eq("appointment_id", appointmentId)
+    .eq("status", "pending");
+
   revalidatePath(path(appointmentId));
   revalidatePath("/agenda");
+  revalidatePath("/financeiro");
+  revalidatePath("/estatisticas");
   return { error: null };
 }

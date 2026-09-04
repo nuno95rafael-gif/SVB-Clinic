@@ -39,8 +39,9 @@
   --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
 }
 
+/* Sem escolha explícita (:root sem [data-theme]), segue o tema do sistema. */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --background: #10161b;
     --surface: #182029;
     --foreground: #e8edf0;
@@ -56,6 +57,24 @@
     --rose: #e0748a;
     --rose-soft: #2e181d;
   }
+}
+
+/* Escolha explícita do botão de tema — vence sempre a preferência do sistema. */
+:root[data-theme="dark"] {
+  --background: #10161b;
+  --surface: #182029;
+  --foreground: #e8edf0;
+  --foreground-soft: #a8b8bf;
+  --foreground-faint: #728089;
+  --line: #2a343d;
+  --line-strong: #3a4650;
+  --accent: #4b9ce8;
+  --accent-ink: #a9d3f7;
+  --accent-soft: #142943;
+  --amber: #e0a752;
+  --amber-soft: #2e2415;
+  --rose: #e0748a;
+  --rose-soft: #2e181d;
 }
 
 body {

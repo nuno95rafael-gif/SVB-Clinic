@@ -40,3 +40,45 @@ export async function addPayment(_prevState: { error: string | null }, formData:
   revalidatePath("/estatisticas");
   return { error: null };
 }
+
+export async function updatePayment(
+  _prevState: { error: string | null; saved: boolean },
+  formData: FormData
+) {
+  await requireAdmin();
+  const paymentId = String(formData.get("payment_id") || "");
+  const amount = Number(formData.get("amount"));
+  const method = String(formData.get("method") || "") || null;
+  const status = String(formData.get("status") || "pending");
+  const paidAtRaw = String(formData.get("paid_at") || "");
+  const description = String(formData.get("description") || "").trim();
+
+  if (!paymentId) return { error: "Pagamento inválido.", saved: false };
+  if (!amount || amount <= 0) return { error: "Indique um valor válido.", saved: false };
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("payments")
+    .update({
+      amount,
+      method,
+      status,
+      description: description || null,
+      paid_at: paidAtRaw ? new Date(paidAtRaw).toISOString() : status === "paid" ? new Date().toISOString() : null,
+    })
+    .eq("id", paymentId);
+
+  if (error) return { error: "Não foi possível guardar. " + error.message, saved: false };
+
+  revalidatePath("/financeiro");
+  revalidatePath("/estatisticas");
+  return { error: null, saved: true };
+}
+
+export async function deletePayment(paymentId: string) {
+  await requireAdmin();
+  const supabase = await createClient();
+  await supabase.from("payments").delete().eq("id", paymentId);
+  revalidatePath("/financeiro");
+  revalidatePath("/estatisticas");
+}
