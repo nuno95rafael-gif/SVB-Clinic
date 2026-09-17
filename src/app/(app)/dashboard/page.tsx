@@ -22,7 +22,7 @@ export default async function DashboardPage() {
 
   let todayQuery = supabase
     .from("appointments")
-    .select("*, patients(id, full_name), professionals(id, color_hex, users(full_name)), rooms(id, name)")
+    .select("*, patients(id, full_name), professionals(id, color_hex, users(full_name))")
     .gte("starts_at", startOfToday.toISOString())
     .lt("starts_at", endOfToday.toISOString())
     .order("starts_at", { ascending: true });
@@ -107,8 +107,7 @@ export default async function DashboardPage() {
                     <div>
                       <p className="text-sm font-medium">{appt.patients?.full_name}</p>
                       <p className="text-[12.5px] text-foreground-faint">
-                        {formatDateTime(appt.starts_at)} · {appt.rooms?.name} ·{" "}
-                        {appt.professionals?.users?.full_name}
+                        {formatDateTime(appt.starts_at)} · {appt.professionals?.users?.full_name}
                       </p>
                     </div>
                     <StatusBadge status={appt.status} />
@@ -131,9 +130,6 @@ export default async function DashboardPage() {
                 </p>
                 <p className="text-[12.5px] text-foreground-faint mt-1">
                   {formatDateTime(nextAppointment.starts_at)}
-                </p>
-                <p className="text-[12.5px] text-foreground-faint">
-                  {(nextAppointment as unknown as Appointment).rooms?.name}
                 </p>
               </div>
             ) : (

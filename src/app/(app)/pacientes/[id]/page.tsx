@@ -37,7 +37,7 @@ export default async function PacienteDetailPage({
       supabase.from("clinical_records").select("*").eq("patient_id", id).single(),
       supabase
         .from("appointments")
-        .select("id, starts_at, status, type, rooms(name)")
+        .select("id, starts_at, status, type")
         .eq("patient_id", id)
         .order("starts_at", { ascending: false }),
       tab === "corpo"
@@ -119,24 +119,20 @@ export default async function PacienteDetailPage({
               </p>
             ) : (
               <ul className="divide-y divide-line">
-                {(appointments as unknown as (Appointment & { rooms?: { name: string } })[]).map(
-                  (a) => (
-                    <li key={a.id}>
-                      <Link
-                        href={`/consultas/${a.id}`}
-                        className="flex items-center justify-between px-5 py-3 hover:bg-background"
-                      >
-                        <div>
-                          <p className="text-sm font-medium">{formatDateTime(a.starts_at)}</p>
-                          <p className="text-[12.5px] text-foreground-faint">
-                            {a.type} · {a.rooms?.name}
-                          </p>
-                        </div>
-                        <Badge tone={a.status === "completed" ? "accent" : "neutral"}>{a.status}</Badge>
-                      </Link>
-                    </li>
-                  )
-                )}
+                {(appointments as unknown as Appointment[]).map((a) => (
+                  <li key={a.id}>
+                    <Link
+                      href={`/consultas/${a.id}`}
+                      className="flex items-center justify-between px-5 py-3 hover:bg-background"
+                    >
+                      <div>
+                        <p className="text-sm font-medium">{formatDateTime(a.starts_at)}</p>
+                        <p className="text-[12.5px] text-foreground-faint">{a.type}</p>
+                      </div>
+                      <Badge tone={a.status === "completed" ? "accent" : "neutral"}>{a.status}</Badge>
+                    </Link>
+                  </li>
+                ))}
               </ul>
             )}
           </CardContent>

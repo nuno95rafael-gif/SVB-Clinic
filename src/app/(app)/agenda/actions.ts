@@ -11,7 +11,6 @@ const schema = z.object({
   // clínica) — não há seletor de clínica próprio no formulário.
   clinic_id: z.string().uuid("Selecione ou crie um paciente."),
   professional_id: z.string().uuid("Selecione um profissional."),
-  room_id: z.string().uuid("Selecione um espaço."),
   // Já vem como ISO UTC calculado no browser (ver toStartsAtISO em
   // date-utils.ts) — não se reconstrói data+hora no servidor, porque o
   // Node/Vercel interpreta "AAAA-MM-DDTHH:MM" sem offset no seu próprio
@@ -29,6 +28,37 @@ function parseAmount(amount: string | undefined) {
   return Number.isFinite(n) && n > 0 ? n : null;
 }
 
+// appointments.room_id continua obrigatório na base de dados (a exclusion
+// constraint anti-conflito está ligada a ele), mas deixou de haver uma
+// funcionalidade de "Espaços" para o utilizador gerir — não há utilidade
+// prática em pedir para escolher uma sala quando só há uma pessoa a
+// trabalhar. Usa-se sempre a primeira sala ativa da clínica e, se ainda não
+// existir nenhuma (clínica nova), cria-se uma na hora.
+async function getOrCreateDefaultRoomId(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  clinicId: string
+) {
+  const { data: existing } = await supabase
+    .from("rooms")
+    .select("id")
+    .eq("clinic_id", clinicId)
+    .eq("active", true)
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+
+  if (existing) return existing.id as string;
+
+  const { data: created, error } = await supabase
+    .from("rooms")
+    .insert({ clinic_id: clinicId, name: "Sala principal" })
+    .select("id")
+    .single();
+
+  if (error || !created) throw new Error("Não foi possível preparar a clínica para consultas.");
+  return created.id as string;
+}
+
 export async function createAppointment(
   _prevState: { error: string | null; ok: boolean },
   formData: FormData
@@ -39,7 +69,6 @@ export async function createAppointment(
     clinic_id: formData.get("clinic_id"),
     patient_id: formData.get("patient_id"),
     professional_id: formData.get("professional_id"),
-    room_id: formData.get("room_id"),
     starts_at: formData.get("starts_at"),
     duration_min: formData.get("duration_min"),
     type: formData.get("type"),
@@ -53,13 +82,20 @@ export async function createAppointment(
 
   const supabase = await createClient();
 
+  let roomId: string;
+  try {
+    roomId = await getOrCreateDefaultRoomId(supabase, parsed.data.clinic_id);
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Erro inesperado.", ok: false };
+  }
+
   const { data: appointment, error } = await supabase
     .from("appointments")
     .insert({
       clinic_id: parsed.data.clinic_id,
       patient_id: parsed.data.patient_id,
       professional_id: parsed.data.professional_id,
-      room_id: parsed.data.room_id,
+      room_id: roomId,
       starts_at: parsed.data.starts_at,
       duration_min: parsed.data.duration_min,
       type: parsed.data.type,
@@ -70,10 +106,10 @@ export async function createAppointment(
     .single();
 
   if (error) {
-    // exclusion_violation = conflito de agenda (sala ou profissional já ocupado)
+    // exclusion_violation = conflito de agenda (profissional já ocupado)
     if (error.code === "23P01") {
       return {
-        error: "Conflito de agenda: a sala ou o profissional já têm uma consulta nesse horário.",
+        error: "Conflito de agenda: o profissional já tem uma consulta nesse horário.",
         ok: false,
       };
     }
@@ -119,7 +155,6 @@ export async function updateAppointment(
     clinic_id: formData.get("clinic_id"),
     patient_id: formData.get("patient_id"),
     professional_id: formData.get("professional_id"),
-    room_id: formData.get("room_id"),
     starts_at: formData.get("starts_at"),
     duration_min: formData.get("duration_min"),
     type: formData.get("type"),
@@ -133,13 +168,20 @@ export async function updateAppointment(
 
   const supabase = await createClient();
 
+  let roomId: string;
+  try {
+    roomId = await getOrCreateDefaultRoomId(supabase, parsed.data.clinic_id);
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Erro inesperado.", saved: false };
+  }
+
   const { error } = await supabase
     .from("appointments")
     .update({
       clinic_id: parsed.data.clinic_id,
       patient_id: parsed.data.patient_id,
       professional_id: parsed.data.professional_id,
-      room_id: parsed.data.room_id,
+      room_id: roomId,
       starts_at: parsed.data.starts_at,
       duration_min: parsed.data.duration_min,
       type: parsed.data.type,
@@ -150,7 +192,7 @@ export async function updateAppointment(
   if (error) {
     if (error.code === "23P01") {
       return {
-        error: "Conflito de agenda: a sala ou o profissional já têm uma consulta nesse horário.",
+        error: "Conflito de agenda: o profissional já tem uma consulta nesse horário.",
         saved: false,
       };
     }
