@@ -42,8 +42,9 @@ export default async function AgendaPage({
   const supabase = await createClient();
 
   // A agenda é única (todas as clínicas juntas — só há um profissional a
-  // trabalhar em todas), por isso não filtra por clínica ativa. Só exclui
-  // pacientes de clínicas inativas.
+  // trabalhar em todas), por isso não filtra por clínica ativa — nem os
+  // pacientes: marcar uma consulta tem de encontrar sempre toda a gente,
+  // mesmo que a clínica onde ficaram registados tenha sido desativada.
   const [{ data: clinics }, { data: professionals }, ownProfResult] = await Promise.all([
     supabase.from("clinics").select("id, name, color_hex").eq("active", true).order("created_at"),
     supabase.from("professionals").select("id, users(full_name)").eq("active", true),
@@ -64,11 +65,7 @@ export default async function AgendaPage({
   if (ownProfessionalId) apptQuery = apptQuery.eq("professional_id", ownProfessionalId);
 
   const [{ data: patients }, { data: appointments }] = await Promise.all([
-    supabase
-      .from("patients")
-      .select("id, full_name, clinic_id, clinics!inner(active)")
-      .eq("clinics.active", true)
-      .order("full_name"),
+    supabase.from("patients").select("id, full_name, clinic_id").order("full_name"),
     apptQuery,
   ]);
   const list = (appointments as unknown as Appointment[]) ?? [];
