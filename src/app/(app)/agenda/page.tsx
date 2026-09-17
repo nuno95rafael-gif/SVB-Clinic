@@ -76,7 +76,7 @@ export default async function AgendaPage({
   const { prev, next, today } = getNavDates(view, refDate);
 
   return (
-    <div className="p-8 max-w-6xl">
+    <div className="p-8">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-semibold">Agenda</h1>
@@ -106,27 +106,27 @@ export default async function AgendaPage({
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-6">
-        <div className="col-span-2">
-          {view === "day" && (
-            <DayView
-              appointments={list}
-              patients={patients ?? []}
-              clinics={clinics ?? []}
-              professionals={
-                (professionals as unknown as { id: string; users: { full_name: string } }[]) ?? []
-              }
-              isAdmin={profile.role === "admin"}
-            />
-          )}
-          {view === "week" && (
-            <WeekView weekStart={start} appointments={list} clinics={clinics ?? []} />
-          )}
-          {view === "month" && (
-            <MonthView monthDate={refDate} appointments={list} clinics={clinics ?? []} />
-          )}
-        </div>
+      <div className="mb-6">
+        {view === "day" && (
+          <DayView
+            appointments={list}
+            patients={patients ?? []}
+            clinics={clinics ?? []}
+            professionals={
+              (professionals as unknown as { id: string; users: { full_name: string } }[]) ?? []
+            }
+            isAdmin={profile.role === "admin"}
+          />
+        )}
+        {view === "week" && (
+          <WeekView weekStart={start} appointments={list} clinics={clinics ?? []} />
+        )}
+        {view === "month" && (
+          <MonthView monthDate={refDate} appointments={list} clinics={clinics ?? []} />
+        )}
+      </div>
 
+      <div className="max-w-xl">
         <NovaConsultaForm
           date={dateStr}
           patients={patients ?? []}
