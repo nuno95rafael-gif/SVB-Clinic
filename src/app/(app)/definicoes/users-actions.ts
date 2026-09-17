@@ -48,6 +48,55 @@ export async function inviteUser(_prevState: { error: string | null; ok: boolean
   return { error: null, ok: true };
 }
 
+const createSchema = z.object({
+  email: z.string().email("Email inválido."),
+  full_name: z.string().min(2, "Indique o nome."),
+  role: z.enum(["admin", "professional"]),
+  password: z.string().min(6, "A palavra-passe deve ter pelo menos 6 caracteres."),
+});
+
+export async function createUserManually(
+  _prevState: { error: string | null; ok: boolean },
+  formData: FormData
+) {
+  await requireAdmin();
+
+  const parsed = createSchema.safeParse({
+    email: formData.get("email"),
+    full_name: formData.get("full_name"),
+    role: formData.get("role"),
+    password: formData.get("password"),
+  });
+
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Dados inválidos.", ok: false };
+  }
+
+  const admin = createAdminClient();
+  const { data, error } = await admin.auth.admin.createUser({
+    email: parsed.data.email,
+    password: parsed.data.password,
+    email_confirm: true,
+    user_metadata: { full_name: parsed.data.full_name, role: parsed.data.role },
+  });
+
+  if (error || !data.user) {
+    return { error: "Não foi possível criar o utilizador. " + (error?.message ?? ""), ok: false };
+  }
+
+  if (parsed.data.role === "professional") {
+    const clinicId = await getActiveClinicIdOrFirst();
+    // upsert porque o trigger on_auth_user_created já criou o perfil em public.users
+    await admin.from("professionals").insert({
+      user_id: data.user.id,
+      clinic_id: clinicId,
+    });
+  }
+
+  revalidatePath("/definicoes");
+  return { error: null, ok: true };
+}
+
 export async function toggleUserActive(userId: string, active: boolean) {
   await requireAdmin();
   const admin = createAdminClient();
