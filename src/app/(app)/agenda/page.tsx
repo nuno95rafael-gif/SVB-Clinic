@@ -43,7 +43,7 @@ export default async function AgendaPage({
 
   // A agenda é única (todas as clínicas juntas — só há um profissional a
   // trabalhar em todas), por isso não filtra por clínica ativa. Só exclui
-  // pacientes/espaços de clínicas inativas.
+  // pacientes de clínicas inativas.
   const [{ data: clinics }, { data: professionals }, ownProfResult] = await Promise.all([
     supabase.from("clinics").select("id, name, color_hex").eq("active", true).order("created_at"),
     supabase.from("professionals").select("id, users(full_name)").eq("active", true),
@@ -56,25 +56,19 @@ export default async function AgendaPage({
   let apptQuery = supabase
     .from("appointments")
     .select(
-      "*, patients(id, full_name), professionals(id, color_hex, users(full_name)), rooms(id, name), clinics(id, name, color_hex), payments(id, amount)"
+      "*, patients(id, full_name), professionals(id, color_hex, users(full_name)), clinics(id, name, color_hex), payments(id, amount)"
     )
     .gte("starts_at", start.toISOString())
     .lt("starts_at", end.toISOString())
     .order("starts_at");
   if (ownProfessionalId) apptQuery = apptQuery.eq("professional_id", ownProfessionalId);
 
-  const [{ data: patients }, { data: rooms }, { data: appointments }] = await Promise.all([
+  const [{ data: patients }, { data: appointments }] = await Promise.all([
     supabase
       .from("patients")
       .select("id, full_name, clinic_id, clinics!inner(active)")
       .eq("clinics.active", true)
       .order("full_name"),
-    supabase
-      .from("rooms")
-      .select("id, name, clinic_id, clinics!inner(active)")
-      .eq("active", true)
-      .eq("clinics.active", true)
-      .order("name"),
     apptQuery,
   ]);
   const list = (appointments as unknown as Appointment[]) ?? [];
@@ -118,7 +112,6 @@ export default async function AgendaPage({
             <DayView
               appointments={list}
               patients={patients ?? []}
-              rooms={rooms ?? []}
               clinics={clinics ?? []}
               professionals={
                 (professionals as unknown as { id: string; users: { full_name: string } }[]) ?? []
@@ -137,7 +130,6 @@ export default async function AgendaPage({
         <NovaConsultaForm
           date={dateStr}
           patients={patients ?? []}
-          rooms={rooms ?? []}
           clinics={clinics ?? []}
           professionals={
             (professionals as unknown as { id: string; users: { full_name: string } }[]) ?? []

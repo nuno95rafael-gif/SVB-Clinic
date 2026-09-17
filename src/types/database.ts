@@ -114,7 +114,6 @@ export interface Appointment {
   created_at: string;
   patients?: Pick<Patient, "id" | "full_name">;
   professionals?: Professional;
-  rooms?: Pick<Room, "id" | "name">;
   clinics?: Pick<Clinic, "id" | "name" | "color_hex">;
   payments?: Pick<Payment, "id" | "amount">[];
 }

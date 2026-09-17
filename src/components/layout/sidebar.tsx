@@ -9,7 +9,6 @@ import {
   Users,
   BarChart3,
   Wallet,
-  DoorOpen,
   Building2,
   Settings,
   LogOut,
@@ -31,7 +30,6 @@ const NAV: {
   { href: "/pacientes", label: "Pacientes", icon: Users, roles: ["admin", "professional"] },
   { href: "/estatisticas", label: "Estatísticas", icon: BarChart3, roles: ["admin"] },
   { href: "/financeiro", label: "Financeiro", icon: Wallet, roles: ["admin"] },
-  { href: "/espacos", label: "Espaços", icon: DoorOpen, roles: ["admin"] },
   { href: "/clinicas", label: "Clínicas", icon: Building2, roles: ["admin"] },
   { href: "/definicoes", label: "Definições", icon: Settings, roles: ["admin", "professional"] },
 ] as const;

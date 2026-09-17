@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useMemo, useRef, useState } from "react";
+import { useActionState, useRef, useState } from "react";
 import { createAppointment } from "./actions";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Select } from "@/components/ui/input";
@@ -11,7 +11,6 @@ import { toStartsAtISO } from "./date-utils";
 export function NovaConsultaForm({
   date,
   patients,
-  rooms,
   clinics,
   professionals,
   isAdmin,
@@ -19,7 +18,6 @@ export function NovaConsultaForm({
 }: {
   date: string;
   patients: { id: string; full_name: string; clinic_id: string }[];
-  rooms: { id: string; name: string; clinic_id: string }[];
   clinics: { id: string; name: string; color_hex: string }[];
   professionals: { id: string; users: { full_name: string } }[];
   isAdmin: boolean;
@@ -39,7 +37,6 @@ export function NovaConsultaForm({
   // paciente pertence a uma única clínica).
   const [clinicId, setClinicId] = useState("");
 
-  const clinicRooms = useMemo(() => rooms.filter((r) => r.clinic_id === clinicId), [rooms, clinicId]);
   const clinicName = clinics.find((c) => c.id === clinicId)?.name;
 
   return (
@@ -97,20 +94,6 @@ export function NovaConsultaForm({
                 Atribuída automaticamente a si.
               </p>
             )}
-          </div>
-
-          <div>
-            <Label htmlFor="room_id">Espaço</Label>
-            <Select key={clinicId} id="room_id" name="room_id" required defaultValue="">
-              <option value="" disabled>
-                {clinicId ? "Selecionar…" : "Escolha primeiro um paciente"}
-              </option>
-              {clinicRooms.map((r) => (
-                <option key={r.id} value={r.id}>
-                  {r.name}
-                </option>
-              ))}
-            </Select>
           </div>
 
           <div className="grid grid-cols-2 gap-3">

@@ -5,14 +5,12 @@ import type { Appointment } from "@/types/database";
 export function DayView({
   appointments,
   patients,
-  rooms,
   clinics,
   professionals,
   isAdmin,
 }: {
   appointments: Appointment[];
   patients: { id: string; full_name: string; clinic_id: string }[];
-  rooms: { id: string; name: string; clinic_id: string }[];
   clinics: { id: string; name: string; color_hex: string }[];
   professionals: { id: string; users?: { full_name: string } }[];
   isAdmin: boolean;
@@ -31,7 +29,6 @@ export function DayView({
                 key={a.id}
                 appointment={a}
                 patients={patients}
-                rooms={rooms}
                 clinics={clinics}
                 professionals={professionals}
                 isAdmin={isAdmin}
