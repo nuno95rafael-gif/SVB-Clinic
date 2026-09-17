@@ -33,7 +33,9 @@ export function PatientRow({
 
   function handleDelete() {
     if (
-      !confirm(`Apagar "${p.full_name}"? Só é possível se não tiver consultas nem pagamentos associados.`)
+      !confirm(
+        `Apagar "${p.full_name}"? Isto apaga também todas as consultas, histórico clínico e pagamentos associados a este paciente. Esta ação não pode ser desfeita.`
+      )
     ) {
       return;
     }

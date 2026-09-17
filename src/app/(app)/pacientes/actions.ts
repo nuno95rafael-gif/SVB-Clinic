@@ -62,26 +62,36 @@ export async function deletePatient(patientId: string): Promise<{ error: string 
   await requireAdmin();
   const supabase = await createClient();
 
-  // Apagar arrastaria consultas/pagamentos reais — só permite apagar um
-  // paciente que já não tenha nada associado.
-  const [appointments, payments] = await Promise.all([
-    supabase.from("appointments").select("id", { count: "exact", head: true }).eq("patient_id", patientId),
-    supabase.from("payments").select("id", { count: "exact", head: true }).eq("patient_id", patientId),
-  ]);
+  // Apaga tudo o que está associado ao paciente, não só o registo dele.
+  // clinical_records/documents/consent_records já têm cascade automática a
+  // partir de patients na base de dados; pagamentos e consultas não têm
+  // (para não desaparecerem sem querer só por apagar noutro sítio), por
+  // isso apagam-se aqui explicitamente, por esta ordem: pagamentos primeiro
+  // (podem referenciar uma das consultas), depois as consultas — o que
+  // arrasta consigo, por cascade, sintomas, avaliações, tratamentos, plano
+  // de cuidados e mapa de dor de cada uma.
+  const { error: paymentsError } = await supabase
+    .from("payments")
+    .delete()
+    .eq("patient_id", patientId);
+  if (paymentsError) {
+    return { error: "Não foi possível apagar os pagamentos associados. " + paymentsError.message };
+  }
 
-  const blockers: string[] = [];
-  if ((appointments.count ?? 0) > 0) blockers.push("consultas");
-  if ((payments.count ?? 0) > 0) blockers.push("pagamentos");
-
-  if (blockers.length > 0) {
-    return {
-      error: `Não é possível apagar: tem ${blockers.join(" e ")} associados. Desative o paciente em vez disso.`,
-    };
+  const { error: appointmentsError } = await supabase
+    .from("appointments")
+    .delete()
+    .eq("patient_id", patientId);
+  if (appointmentsError) {
+    return { error: "Não foi possível apagar as consultas associadas. " + appointmentsError.message };
   }
 
   const { error } = await supabase.from("patients").delete().eq("id", patientId);
-  if (error) return { error: "Não foi possível apagar. " + error.message };
+  if (error) return { error: "Não foi possível apagar o paciente. " + error.message };
 
   revalidatePath("/pacientes");
+  revalidatePath("/agenda");
+  revalidatePath("/financeiro");
+  revalidatePath("/estatisticas");
   return { error: null };
 }
