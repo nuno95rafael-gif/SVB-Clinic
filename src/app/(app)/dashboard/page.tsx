@@ -1,10 +1,12 @@
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { requireUser } from "@/lib/auth";
 import { getActiveClinicId } from "@/lib/clinic";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { formatDateTime, formatCurrency } from "@/lib/utils";
-import { CalendarClock, Users, TrendingUp, Percent } from "lucide-react";
+import { CalendarClock, Users, TrendingUp, Percent, Plus } from "lucide-react";
 import type { Appointment } from "@/types/database";
 
 export default async function DashboardPage() {
@@ -76,11 +78,19 @@ export default async function DashboardPage() {
 
   return (
     <div className="p-8 max-w-6xl">
-      <div className="mb-8">
-        <h1 className="text-2xl font-semibold">Olá, {profile.full_name.split(" ")[0]}</h1>
-        <p className="text-sm text-foreground-soft mt-1">
-          {new Intl.DateTimeFormat("pt-PT", { dateStyle: "full" }).format(new Date())}
-        </p>
+      <div className="mb-8 flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold">Olá, {profile.full_name.split(" ")[0]}</h1>
+          <p className="text-sm text-foreground-soft mt-1">
+            {new Intl.DateTimeFormat("pt-PT", { dateStyle: "full" }).format(new Date())}
+          </p>
+        </div>
+        <Link href="/agenda">
+          <Button size="lg">
+            <Plus size={18} />
+            Nova consulta
+          </Button>
+        </Link>
       </div>
 
       <div className="grid grid-cols-4 gap-4 mb-8">
