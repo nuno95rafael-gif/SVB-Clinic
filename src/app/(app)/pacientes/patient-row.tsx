@@ -13,10 +13,12 @@ import type { Patient } from "@/types/database";
 export function PatientRow({
   patient: p,
   professionals,
+  clinics,
   isAdmin,
 }: {
   patient: Patient;
   professionals: { id: string; users: { full_name: string } }[];
+  clinics: { id: string; name: string; active: boolean }[];
   isAdmin: boolean;
 }) {
   const [editing, setEditing] = useState(false);
@@ -92,6 +94,21 @@ export function PatientRow({
                 </Select>
               </div>
             </div>
+            {isAdmin && (
+              <div className="grid grid-cols-4 gap-2.5">
+                <div className="col-span-2">
+                  <Label htmlFor={`clinic-${p.id}`}>Clínica</Label>
+                  <Select id={`clinic-${p.id}`} name="clinic_id" defaultValue={p.clinic_id}>
+                    {clinics.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}
+                        {!c.active ? " (inativa)" : ""}
+                      </option>
+                    ))}
+                  </Select>
+                </div>
+              </div>
+            )}
 
             {state.error && <p className="text-[12.5px] text-rose">{state.error}</p>}
 

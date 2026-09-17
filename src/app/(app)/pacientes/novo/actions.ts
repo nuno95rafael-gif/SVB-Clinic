@@ -4,10 +4,10 @@ import { z } from "zod";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { requireUser } from "@/lib/auth";
-import { getActiveClinicId } from "@/lib/clinic";
 
 const schema = z.object({
   full_name: z.string().min(2, "Indique o nome completo."),
+  clinic_id: z.string().uuid("Selecione a clínica."),
   birth_date: z.string().optional(),
   phone: z.string().optional(),
   email: z.string().email("Email inválido.").optional().or(z.literal("")),
@@ -23,6 +23,7 @@ export async function createPatient(
 
   const parsed = schema.safeParse({
     full_name: formData.get("full_name"),
+    clinic_id: formData.get("clinic_id"),
     birth_date: formData.get("birth_date") || undefined,
     phone: formData.get("phone") || undefined,
     email: formData.get("email") || "",
@@ -46,15 +47,10 @@ export async function createPatient(
     professionalId = prof?.id ?? null;
   }
 
-  const clinicId = await getActiveClinicId();
-  if (!clinicId) {
-    return { error: "Selecione uma clínica específica na barra lateral antes de registar um paciente." };
-  }
-
   const { data: patient, error } = await supabase
     .from("patients")
     .insert({
-      clinic_id: clinicId,
+      clinic_id: parsed.data.clinic_id,
       professional_id: professionalId,
       full_name: parsed.data.full_name,
       birth_date: parsed.data.birth_date || null,

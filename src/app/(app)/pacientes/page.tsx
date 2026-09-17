@@ -28,10 +28,13 @@ export default async function PacientesPage({
   if (q) query = query.ilike("full_name", `%${q}%`);
   if (status) query = query.eq("status", status);
 
-  const [{ data: patients, error }, { data: professionals }] = await Promise.all([
+  const [{ data: patients, error }, { data: professionals }, { data: clinics }] = await Promise.all([
     query,
     profile.role === "admin"
       ? supabase.from("professionals").select("id, users(full_name)").eq("active", true)
+      : Promise.resolve({ data: null }),
+    profile.role === "admin"
+      ? supabase.from("clinics").select("id, name, active").order("active", { ascending: false }).order("name")
       : Promise.resolve({ data: null }),
   ]);
 
@@ -106,6 +109,7 @@ export default async function PacientesPage({
                   professionals={
                     (professionals as unknown as { id: string; users: { full_name: string } }[]) ?? []
                   }
+                  clinics={clinics ?? []}
                   isAdmin={profile.role === "admin"}
                 />
               ))}

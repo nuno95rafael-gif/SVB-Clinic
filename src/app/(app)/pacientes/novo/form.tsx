@@ -9,9 +9,13 @@ import { Card, CardContent } from "@/components/ui/card";
 export function NovoPacienteForm({
   professionals,
   showProfessionalSelect,
+  clinics,
+  defaultClinicId,
 }: {
   professionals: { id: string; users: { full_name: string } }[];
   showProfessionalSelect: boolean;
+  clinics: { id: string; name: string; active: boolean }[];
+  defaultClinicId: string | null;
 }) {
   const [state, formAction, pending] = useActionState<{ error: string | null }, FormData>(
     createPatient,
@@ -25,6 +29,21 @@ export function NovoPacienteForm({
           <div>
             <Label htmlFor="full_name">Nome completo *</Label>
             <Input id="full_name" name="full_name" required />
+          </div>
+
+          <div>
+            <Label htmlFor="clinic_id">Clínica *</Label>
+            <Select id="clinic_id" name="clinic_id" required defaultValue={defaultClinicId ?? ""}>
+              <option value="" disabled>
+                Selecionar…
+              </option>
+              {clinics.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                  {!c.active ? " (inativa)" : ""}
+                </option>
+              ))}
+            </Select>
           </div>
 
           <div className="grid grid-cols-2 gap-4">

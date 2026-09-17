@@ -12,6 +12,7 @@ const schema = z.object({
   phone: z.string().optional(),
   email: z.string().email("Email inválido.").optional().or(z.literal("")),
   professional_id: z.string().uuid().optional().or(z.literal("")),
+  clinic_id: z.string().uuid().optional().or(z.literal("")),
   status: z.enum(["active", "inactive"]),
 });
 
@@ -28,6 +29,7 @@ export async function updatePatient(
     phone: formData.get("phone") || undefined,
     email: formData.get("email") || "",
     professional_id: formData.get("professional_id") || "",
+    clinic_id: formData.get("clinic_id") || "",
     status: formData.get("status"),
   });
 
@@ -44,9 +46,10 @@ export async function updatePatient(
     email: parsed.data.email || null,
     status: parsed.data.status,
   };
-  // Só o admin pode reatribuir o profissional responsável.
+  // Só o admin pode reatribuir o profissional responsável ou mudar a clínica.
   if (profile.role === "admin") {
     update.professional_id = parsed.data.professional_id || null;
+    if (parsed.data.clinic_id) update.clinic_id = parsed.data.clinic_id;
   }
 
   const { error } = await supabase.from("patients").update(update).eq("id", parsed.data.patient_id);
@@ -55,6 +58,7 @@ export async function updatePatient(
 
   revalidatePath("/pacientes");
   revalidatePath(`/pacientes/${parsed.data.patient_id}`);
+  revalidatePath("/agenda");
   return { error: null, saved: true };
 }
 
