@@ -11,8 +11,6 @@ import type {
   PainFrequency,
   PainType,
   PhysicalAssessment,
-  Symptom,
-  SymptomType,
   TreatmentRecord,
 } from "@/types/database";
 
@@ -36,34 +34,6 @@ export async function saveChiefComplaint(
     })
     .eq("id", consultationId);
 
-  if (error) return { error: error.message };
-  revalidatePath(path(appointmentId));
-  return { error: null };
-}
-
-export async function addSymptom(
-  consultationId: string,
-  appointmentId: string,
-  symptomType: SymptomType,
-  notes: string
-): Promise<{ data: Symptom | null; error: string | null }> {
-  await requireUser();
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("symptoms")
-    .insert({ consultation_id: consultationId, symptom_type: symptomType, notes: notes || null })
-    .select("*")
-    .single();
-
-  if (error) return { data: null, error: error.message };
-  revalidatePath(path(appointmentId));
-  return { data: data as Symptom, error: null };
-}
-
-export async function removeSymptom(symptomId: string, appointmentId: string) {
-  await requireUser();
-  const supabase = await createClient();
-  const { error } = await supabase.from("symptoms").delete().eq("id", symptomId);
   if (error) return { error: error.message };
   revalidatePath(path(appointmentId));
   return { error: null };
@@ -121,22 +91,12 @@ export async function savePhysicalAssessment(
   existingId: string | null,
   consultationId: string,
   appointmentId: string,
-  fields: {
-    mobility: string;
-    rom_notes: string;
-    asymmetry: string;
-    limitations: string;
-  }
+  mobility: string
 ): Promise<{ data: PhysicalAssessment | null; error: string | null }> {
   await requireUser();
   const supabase = await createClient();
 
-  const payload = {
-    mobility: fields.mobility || null,
-    rom_notes: fields.rom_notes || null,
-    asymmetry: fields.asymmetry || null,
-    limitations: fields.limitations || null,
-  };
+  const payload = { mobility: mobility || null };
 
   const query = existingId
     ? supabase.from("physical_assessments").update(payload).eq("id", existingId)
@@ -154,7 +114,7 @@ export async function savePhysicalAssessment(
 export async function addTreatmentRecord(
   consultationId: string,
   appointmentId: string,
-  input: { treatmentId: string | null; region: string; technique: string; observations: string }
+  input: { region: string; technique: string }
 ): Promise<{ data: TreatmentRecord | null; error: string | null }> {
   await requireUser();
   const supabase = await createClient();
@@ -162,10 +122,8 @@ export async function addTreatmentRecord(
     .from("treatment_records")
     .insert({
       consultation_id: consultationId,
-      treatment_id: input.treatmentId,
       region: input.region || null,
       technique: input.technique || null,
-      observations: input.observations || null,
     })
     .select("*, treatments_catalog(id, name)")
     .single();
@@ -189,8 +147,6 @@ export async function saveCarePlan(
   appointmentId: string,
   fields: {
     recommendations: string;
-    home_care: string;
-    education_notes: string;
     next_appointment_suggested_at: string;
   }
 ): Promise<{ data: CarePlan | null; error: string | null }> {
@@ -202,8 +158,6 @@ export async function saveCarePlan(
       {
         consultation_id: consultationId,
         recommendations: fields.recommendations || null,
-        home_care: fields.home_care || null,
-        education_notes: fields.education_notes || null,
         next_appointment_suggested_at: fields.next_appointment_suggested_at || null,
       },
       { onConflict: "consultation_id" }

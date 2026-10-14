@@ -7,7 +7,6 @@ import type {
   Consultation,
   PainAssessment,
   PhysicalAssessment,
-  Symptom,
   TreatmentRecord,
 } from "@/types/database";
 
@@ -56,14 +55,11 @@ export default async function ConsultaPage({
   const consultationRow = consultation as Consultation;
 
   const [
-    { data: symptoms },
     { data: painPoints },
     { data: physicalAssessment },
     { data: treatmentRecords },
-    { data: treatmentsCatalog },
     { data: carePlan },
   ] = await Promise.all([
-    supabase.from("symptoms").select("*").eq("consultation_id", consultationRow.id),
     supabase.from("pain_assessments").select("*").eq("consultation_id", consultationRow.id),
     supabase
       .from("physical_assessments")
@@ -74,7 +70,6 @@ export default async function ConsultaPage({
       .from("treatment_records")
       .select("*, treatments_catalog(id, name)")
       .eq("consultation_id", consultationRow.id),
-    supabase.from("treatments_catalog").select("id, name").eq("active", true).order("name"),
     supabase.from("care_plans").select("*").eq("consultation_id", consultationRow.id).maybeSingle(),
   ]);
 
@@ -89,11 +84,9 @@ export default async function ConsultaPage({
       patientName={patient?.full_name ?? "Paciente"}
       isAdmin={profile.role === "admin"}
       concluded={Boolean(consultationRow.finished_at)}
-      initialSymptoms={(symptoms as Symptom[]) ?? []}
       initialPainPoints={(painPoints as PainAssessment[]) ?? []}
       initialPhysicalAssessment={(physicalAssessment as PhysicalAssessment | null) ?? null}
       initialTreatmentRecords={(treatmentRecords as TreatmentRecord[]) ?? []}
-      treatmentsCatalog={treatmentsCatalog ?? []}
       initialCarePlan={(carePlan as CarePlan | null) ?? null}
     />
   );
