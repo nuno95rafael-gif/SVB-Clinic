@@ -17,27 +17,21 @@ import {
   finishConsultation,
   removePainAssessment,
   removeTreatmentRecord,
-  saveCarePlan,
   saveChiefComplaint,
-  savePhysicalAssessment,
 } from "./actions";
 import type {
   BodySide,
   BodyView,
-  CarePlan,
   Consultation,
   PainAssessment,
-  PhysicalAssessment,
   TreatmentRecord,
 } from "@/types/database";
 
 const SECTIONS = [
   { key: "queixa", n: "01", label: "Queixa" },
   { key: "dor", n: "02", label: "Dor + corpo" },
-  { key: "avaliacao", n: "03", label: "Avaliação física" },
-  { key: "tratamento", n: "04", label: "Tratamento" },
-  { key: "plano", n: "05", label: "Plano" },
-  { key: "guardar", n: "06", label: "Guardar" },
+  { key: "tratamento", n: "03", label: "Tratamento" },
+  { key: "guardar", n: "04", label: "Guardar" },
 ] as const;
 
 export function ConsultationEditor({
@@ -48,9 +42,7 @@ export function ConsultationEditor({
   isAdmin,
   concluded,
   initialPainPoints,
-  initialPhysicalAssessment,
   initialTreatmentRecords,
-  initialCarePlan,
 }: {
   consultation: Consultation;
   appointmentId: string;
@@ -59,9 +51,7 @@ export function ConsultationEditor({
   isAdmin: boolean;
   concluded: boolean;
   initialPainPoints: PainAssessment[];
-  initialPhysicalAssessment: PhysicalAssessment | null;
   initialTreatmentRecords: TreatmentRecord[];
-  initialCarePlan: CarePlan | null;
 }) {
   const router = useRouter();
 
@@ -102,22 +92,10 @@ export function ConsultationEditor({
           initialPainPoints={initialPainPoints}
         />
 
-        <AvaliacaoSection
-          consultation={consultation}
-          appointmentId={appointmentId}
-          initial={initialPhysicalAssessment}
-        />
-
         <TratamentoSection
           consultation={consultation}
           appointmentId={appointmentId}
           initialRecords={initialTreatmentRecords}
-        />
-
-        <PlanoSection
-          consultation={consultation}
-          appointmentId={appointmentId}
-          initial={initialCarePlan}
         />
 
         <GuardarSection
@@ -365,54 +343,7 @@ function DorSection({
   );
 }
 
-// --- 03: Avaliação física ----------------------------------------------------
-
-function AvaliacaoSection({
-  consultation,
-  appointmentId,
-  initial,
-}: {
-  consultation: Consultation;
-  appointmentId: string;
-  initial: PhysicalAssessment | null;
-}) {
-  const [id, setId] = useState(initial?.id ?? null);
-  const [mobility, setMobility] = useState(initial?.mobility ?? "");
-  const [saved, setSaved] = useState(false);
-  const [pending, startTransition] = useTransition();
-
-  function handleSave() {
-    startTransition(async () => {
-      const { data } = await savePhysicalAssessment(id, consultation.id, appointmentId, mobility);
-      if (data) {
-        setId(data.id);
-        setSaved(true);
-        setTimeout(() => setSaved(false), 1500);
-      }
-    });
-  }
-
-  return (
-    <SectionShell id="avaliacao" n="03" title="Avaliação física">
-      <Card>
-        <CardContent className="space-y-3">
-          <div>
-            <Label>Mobilidade, limitações e assimetrias</Label>
-            <Textarea rows={3} value={mobility} onChange={(e) => setMobility(e.target.value)} />
-          </div>
-          <div className="flex items-center justify-end gap-3">
-            {saved && <span className="text-[12.5px] text-accent-ink">Guardado.</span>}
-            <Button type="button" size="sm" onClick={handleSave} disabled={pending}>
-              {pending ? "A guardar…" : "Guardar avaliação"}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    </SectionShell>
-  );
-}
-
-// --- 04: Tratamento -----------------------------------------------------------
+// --- 03: Tratamento -----------------------------------------------------------
 
 function TratamentoSection({
   consultation,
@@ -451,7 +382,7 @@ function TratamentoSection({
   }
 
   return (
-    <SectionShell id="tratamento" n="04" title="Tratamento">
+    <SectionShell id="tratamento" n="03" title="Tratamento">
       <Card>
         <CardContent className="space-y-4">
           <ul className="divide-y divide-line">
@@ -496,60 +427,7 @@ function TratamentoSection({
   );
 }
 
-// --- 05: Plano ------------------------------------------------------------
-
-function PlanoSection({
-  consultation,
-  appointmentId,
-  initial,
-}: {
-  consultation: Consultation;
-  appointmentId: string;
-  initial: CarePlan | null;
-}) {
-  const [recommendations, setRecommendations] = useState(initial?.recommendations ?? "");
-  const [nextDate, setNextDate] = useState(initial?.next_appointment_suggested_at ?? "");
-  const [saved, setSaved] = useState(false);
-  const [pending, startTransition] = useTransition();
-
-  function handleSave() {
-    startTransition(async () => {
-      const { data } = await saveCarePlan(consultation.id, appointmentId, {
-        recommendations,
-        next_appointment_suggested_at: nextDate,
-      });
-      if (data) {
-        setSaved(true);
-        setTimeout(() => setSaved(false), 1500);
-      }
-    });
-  }
-
-  return (
-    <SectionShell id="plano" n="05" title="Plano">
-      <Card>
-        <CardContent className="space-y-4">
-          <div>
-            <Label>Recomendações</Label>
-            <Textarea rows={2} value={recommendations} onChange={(e) => setRecommendations(e.target.value)} />
-          </div>
-          <div className="max-w-xs">
-            <Label>Próxima consulta sugerida para</Label>
-            <Input type="date" value={nextDate ?? ""} onChange={(e) => setNextDate(e.target.value)} />
-          </div>
-          <div className="flex items-center justify-end gap-3">
-            {saved && <span className="text-[12.5px] text-accent-ink">Guardado.</span>}
-            <Button type="button" size="sm" onClick={handleSave} disabled={pending}>
-              {pending ? "A guardar…" : "Guardar plano"}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    </SectionShell>
-  );
-}
-
-// --- 06: Guardar ---------------------------------------------------------
+// --- 04: Guardar ---------------------------------------------------------
 
 function GuardarSection({
   consultation,
@@ -582,7 +460,7 @@ function GuardarSection({
   }
 
   return (
-    <SectionShell id="guardar" n="06" title="Guardar">
+    <SectionShell id="guardar" n="04" title="Guardar">
       <Card>
         <CardContent className="flex items-center justify-between">
           <div>

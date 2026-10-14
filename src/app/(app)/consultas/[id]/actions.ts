@@ -6,11 +6,9 @@ import { requireUser } from "@/lib/auth";
 import type {
   BodySide,
   BodyView,
-  CarePlan,
   PainAssessment,
   PainFrequency,
   PainType,
-  PhysicalAssessment,
   TreatmentRecord,
 } from "@/types/database";
 
@@ -87,30 +85,6 @@ export async function removePainAssessment(pointId: string, appointmentId: strin
   return { error: null };
 }
 
-export async function savePhysicalAssessment(
-  existingId: string | null,
-  consultationId: string,
-  appointmentId: string,
-  mobility: string
-): Promise<{ data: PhysicalAssessment | null; error: string | null }> {
-  await requireUser();
-  const supabase = await createClient();
-
-  const payload = { mobility: mobility || null };
-
-  const query = existingId
-    ? supabase.from("physical_assessments").update(payload).eq("id", existingId)
-    : supabase
-        .from("physical_assessments")
-        .insert({ consultation_id: consultationId, ...payload });
-
-  const { data, error } = await query.select("*").single();
-
-  if (error) return { data: null, error: error.message };
-  revalidatePath(path(appointmentId));
-  return { data: data as PhysicalAssessment, error: null };
-}
-
 export async function addTreatmentRecord(
   consultationId: string,
   appointmentId: string,
@@ -140,34 +114,6 @@ export async function removeTreatmentRecord(recordId: string, appointmentId: str
   if (error) return { error: error.message };
   revalidatePath(path(appointmentId));
   return { error: null };
-}
-
-export async function saveCarePlan(
-  consultationId: string,
-  appointmentId: string,
-  fields: {
-    recommendations: string;
-    next_appointment_suggested_at: string;
-  }
-): Promise<{ data: CarePlan | null; error: string | null }> {
-  await requireUser();
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("care_plans")
-    .upsert(
-      {
-        consultation_id: consultationId,
-        recommendations: fields.recommendations || null,
-        next_appointment_suggested_at: fields.next_appointment_suggested_at || null,
-      },
-      { onConflict: "consultation_id" }
-    )
-    .select("*")
-    .single();
-
-  if (error) return { data: null, error: error.message };
-  revalidatePath(path(appointmentId));
-  return { data: data as CarePlan, error: null };
 }
 
 export async function finishConsultation(consultationId: string, appointmentId: string) {

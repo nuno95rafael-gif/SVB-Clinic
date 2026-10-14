@@ -3,10 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import { requireUser } from "@/lib/auth";
 import { ConsultationEditor } from "./consultation-editor";
 import type {
-  CarePlan,
   Consultation,
   PainAssessment,
-  PhysicalAssessment,
   TreatmentRecord,
 } from "@/types/database";
 
@@ -56,21 +54,13 @@ export default async function ConsultaPage({
 
   const [
     { data: painPoints },
-    { data: physicalAssessment },
     { data: treatmentRecords },
-    { data: carePlan },
   ] = await Promise.all([
     supabase.from("pain_assessments").select("*").eq("consultation_id", consultationRow.id),
-    supabase
-      .from("physical_assessments")
-      .select("*")
-      .eq("consultation_id", consultationRow.id)
-      .maybeSingle(),
     supabase
       .from("treatment_records")
       .select("*, treatments_catalog(id, name)")
       .eq("consultation_id", consultationRow.id),
-    supabase.from("care_plans").select("*").eq("consultation_id", consultationRow.id).maybeSingle(),
   ]);
 
   const patient = (appointment as unknown as { patients?: { id: string; full_name: string } })
@@ -85,9 +75,7 @@ export default async function ConsultaPage({
       isAdmin={profile.role === "admin"}
       concluded={Boolean(consultationRow.finished_at)}
       initialPainPoints={(painPoints as PainAssessment[]) ?? []}
-      initialPhysicalAssessment={(physicalAssessment as PhysicalAssessment | null) ?? null}
       initialTreatmentRecords={(treatmentRecords as TreatmentRecord[]) ?? []}
-      initialCarePlan={(carePlan as CarePlan | null) ?? null}
     />
   );
 }
