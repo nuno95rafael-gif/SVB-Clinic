@@ -1,8 +1,8 @@
 "use client";
 
 import { useActionState, useEffect, useState, useTransition } from "react";
-import { Pencil } from "lucide-react";
-import { toggleUserActive, updateUser } from "./users-actions";
+import { Pencil, Trash2 } from "lucide-react";
+import { deleteUser, toggleUserActive, updateUser } from "./users-actions";
 import { Button } from "@/components/ui/button";
 import { Input, Select } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +12,8 @@ import type { UserProfile } from "@/types/database";
 export function UserRow({ user, isSelf }: { user: UserProfile; isSelf: boolean }) {
   const [editing, setEditing] = useState(false);
   const [toggling, startToggle] = useTransition();
+  const [deleting, startDelete] = useTransition();
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const [state, formAction, pending] = useActionState<
     { error: string | null; saved: boolean },
     FormData
@@ -20,6 +22,21 @@ export function UserRow({ user, isSelf }: { user: UserProfile; isSelf: boolean }
   useEffect(() => {
     if (state.saved) setEditing(false);
   }, [state.saved]);
+
+  function handleDelete() {
+    if (
+      !confirm(
+        `Apagar o utilizador "${user.full_name}" (${user.email})? Deixa de poder entrar na app. Esta ação não pode ser desfeita.`
+      )
+    ) {
+      return;
+    }
+    setDeleteError(null);
+    startDelete(async () => {
+      const res = await deleteUser(user.id);
+      if (res.error) setDeleteError(res.error);
+    });
+  }
 
   if (editing) {
     return (
@@ -44,7 +61,7 @@ export function UserRow({ user, isSelf }: { user: UserProfile; isSelf: boolean }
   }
 
   return (
-    <li className="flex items-center justify-between px-5 py-3">
+    <li className="flex flex-wrap items-center justify-between px-5 py-3">
       <div className="flex items-center gap-3">
         <div className="flex h-8 w-8 items-center justify-center rounded-full bg-accent-soft text-[11px] font-semibold text-accent-ink">
           {initials(user.full_name)}
@@ -77,7 +94,19 @@ export function UserRow({ user, isSelf }: { user: UserProfile; isSelf: boolean }
             {user.active ? "Desativar" : "Ativar"}
           </Button>
         )}
+        {!isSelf && (
+          <button
+            type="button"
+            disabled={deleting}
+            onClick={handleDelete}
+            className="text-foreground-faint hover:text-rose disabled:opacity-50"
+            aria-label="Apagar"
+          >
+            <Trash2 size={14} />
+          </button>
+        )}
       </div>
+      {deleteError && <p className="basis-full mt-1.5 text-[12.5px] text-rose">{deleteError}</p>}
     </li>
   );
 }

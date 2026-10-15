@@ -147,3 +147,50 @@ export async function updateUser(
   revalidatePath("/definicoes");
   return { error: null, saved: true };
 }
+
+export async function deleteUser(userId: string): Promise<{ error: string | null }> {
+  const { profile } = await requireAdmin();
+  if (userId === profile.id) {
+    return { error: "Não pode apagar a sua própria conta." };
+  }
+
+  const admin = createAdminClient();
+
+  // Um profissional com consultas ou pacientes não pode desaparecer sem mais
+  // (apagar o login arrastaria o profissional por cascade).
+  const { data: prof } = await admin
+    .from("professionals")
+    .select("id")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (prof) {
+    const [appointments, patients] = await Promise.all([
+      admin.from("appointments").select("id", { count: "exact", head: true }).eq("professional_id", prof.id),
+      admin.from("patients").select("id", { count: "exact", head: true }).eq("professional_id", prof.id),
+    ]);
+    const blockers: string[] = [];
+    if ((appointments.count ?? 0) > 0) blockers.push("consultas");
+    if ((patients.count ?? 0) > 0) blockers.push("pacientes");
+    if (blockers.length > 0) {
+      return {
+        error: `Não é possível apagar: este profissional tem ${blockers.join(" e ")} associados. Transfira-os primeiro, ou desative o utilizador em vez de apagar.`,
+      };
+    }
+  }
+
+  // Referências só de autoria (quem criou/editou) — ficam sem autor em vez de bloquear.
+  await Promise.all([
+    admin.from("patients").update({ created_by: null }).eq("created_by", userId),
+    admin.from("appointments").update({ created_by: null }).eq("created_by", userId),
+    admin.from("clinical_records").update({ updated_by: null }).eq("updated_by", userId),
+    admin.from("documents").update({ uploaded_by: null }).eq("uploaded_by", userId),
+  ]);
+
+  const { error } = await admin.auth.admin.deleteUser(userId);
+  if (error) return { error: "Não foi possível apagar o utilizador. " + error.message };
+
+  revalidatePath("/definicoes");
+  revalidatePath("/agenda");
+  return { error: null };
+}
