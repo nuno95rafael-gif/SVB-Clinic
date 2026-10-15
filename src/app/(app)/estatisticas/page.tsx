@@ -93,21 +93,21 @@ export default async function EstatisticasPage() {
     totalAppointments > 0 ? Math.round((completedAppointments / totalAppointments) * 100) : 0;
 
   return (
-    <div className="p-8 max-w-6xl">
+    <div className="p-4 md:p-8 max-w-6xl">
       <div className="mb-8">
         <h1 className="text-2xl font-semibold">Estatísticas</h1>
         <p className="text-sm text-foreground-soft mt-1">Últimos {MONTHS_BACK} meses</p>
       </div>
 
-      <div className="grid grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <Mini label="Receita total" value={formatCurrency(totalRevenue)} />
         <Mini label="Consultas realizadas" value={String(completedAppointments)} />
         <Mini label="Canceladas / faltas" value={String(cancelledAppointments)} />
         <Mini label="Taxa de comparência" value={`${attendanceRate}%`} />
       </div>
 
-      <div className="grid grid-cols-3 gap-6">
-        <Card className="col-span-2">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card className="md:col-span-2">
           <CardHeader>
             <CardTitle>Receita mensal por clínica</CardTitle>
           </CardHeader>

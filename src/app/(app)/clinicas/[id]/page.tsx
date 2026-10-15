@@ -29,7 +29,7 @@ export default async function ClinicaDetailPage({
   if (!clinic) notFound();
 
   return (
-    <div className="p-8 max-w-3xl">
+    <div className="p-4 md:p-8 max-w-3xl">
       <Link
         href="/clinicas"
         className="inline-flex items-center gap-1.5 text-[13px] text-foreground-faint hover:text-foreground"

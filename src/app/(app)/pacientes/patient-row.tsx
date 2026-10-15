@@ -54,7 +54,7 @@ export function PatientRow({
         <td colSpan={6} className="px-5 py-3.5">
           <form action={formAction} className="space-y-2.5">
             <input type="hidden" name="patient_id" value={p.id} />
-            <div className="grid grid-cols-4 gap-2.5">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
               <div className="col-span-2">
                 <Label htmlFor={`name-${p.id}`}>Nome completo</Label>
                 <Input id={`name-${p.id}`} name="full_name" defaultValue={p.full_name} required />
@@ -68,7 +68,7 @@ export function PatientRow({
                 <Input id={`phone-${p.id}`} name="phone" type="tel" defaultValue={p.phone ?? ""} />
               </div>
             </div>
-            <div className="grid grid-cols-4 gap-2.5">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
               <div className="col-span-2">
                 <Label htmlFor={`email-${p.id}`}>Email</Label>
                 <Input id={`email-${p.id}`} name="email" type="email" defaultValue={p.email ?? ""} />
@@ -95,7 +95,7 @@ export function PatientRow({
               </div>
             </div>
             {isAdmin && (
-              <div className="grid grid-cols-4 gap-2.5">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                 <div className="col-span-2">
                   <Label htmlFor={`clinic-${p.id}`}>Clínica</Label>
                   <Select id={`clinic-${p.id}`} name="clinic_id" defaultValue={p.clinic_id}>

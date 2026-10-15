@@ -23,6 +23,8 @@ export function MonthView({
   return (
     <Card className="overflow-hidden">
       <ClinicLegend clinics={clinics} />
+      <div className="overflow-x-auto">
+      <div className="min-w-[640px]">
       <div className="grid grid-cols-7 border-b border-line">
         {DAY_LABELS.map((l) => (
           <div
@@ -82,6 +84,8 @@ export function MonthView({
             </div>
           );
         })}
+      </div>
+      </div>
       </div>
     </Card>
   );

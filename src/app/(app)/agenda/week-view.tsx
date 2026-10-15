@@ -22,7 +22,8 @@ export function WeekView({
   return (
     <Card className="overflow-hidden">
       <ClinicLegend clinics={clinics} />
-      <div className="grid grid-cols-7 divide-x divide-line">
+      <div className="overflow-x-auto">
+      <div className="grid min-w-[640px] grid-cols-7 divide-x divide-line">
         {days.map((day, i) => {
           const dayAppointments = appointments
             .filter((a) => isSameDate(new Date(a.starts_at), day))
@@ -70,6 +71,7 @@ export function WeekView({
             </div>
           );
         })}
+      </div>
       </div>
     </Card>
   );

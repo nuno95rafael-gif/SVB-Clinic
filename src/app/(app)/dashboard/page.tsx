@@ -77,7 +77,7 @@ export default async function DashboardPage() {
   );
 
   return (
-    <div className="p-8 max-w-6xl">
+    <div className="p-4 md:p-8 max-w-6xl">
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold">Olá, {profile.full_name.split(" ")[0]}</h1>
@@ -93,15 +93,15 @@ export default async function DashboardPage() {
         </Link>
       </div>
 
-      <div className="grid grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         <StatCard icon={CalendarClock} label="Consultas hoje" value={String(todayAppointments?.length ?? 0)} />
         <StatCard icon={Users} label="Pacientes ativos" value={String(activePatients)} />
         <StatCard icon={TrendingUp} label="Novos este mês" value={String(newThisMonth)} />
         <StatCard icon={Percent} label="Taxa de comparência" value={`${attendanceRate}%`} />
       </div>
 
-      <div className="grid grid-cols-3 gap-6">
-        <Card className="col-span-2">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card className="md:col-span-2">
           <CardHeader>
             <CardTitle>Consultas de hoje</CardTitle>
           </CardHeader>
@@ -149,7 +149,7 @@ export default async function DashboardPage() {
         </Card>
       </div>
 
-      <div className="grid grid-cols-4 gap-4 mt-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
         <MiniStat label="Consultas do mês" value={String(totalMonth)} />
         <MiniStat label="Realizadas" value={String(completed)} />
         <MiniStat label="Canceladas / faltas" value={String(cancelled)} />

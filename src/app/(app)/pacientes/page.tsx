@@ -39,7 +39,7 @@ export default async function PacientesPage({
   ]);
 
   return (
-    <div className="p-8 max-w-6xl">
+    <div className="p-4 md:p-8 max-w-6xl">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-semibold">Pacientes</h1>
@@ -90,7 +90,8 @@ export default async function PacientesPage({
             )}
           </div>
         ) : (
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-[640px] text-sm">
             <thead>
               <tr className="border-b border-line text-left text-[11px] uppercase tracking-wide text-foreground-faint">
                 <th className="px-5 py-3 font-medium">Paciente</th>
@@ -115,6 +116,7 @@ export default async function PacientesPage({
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </Card>
     </div>

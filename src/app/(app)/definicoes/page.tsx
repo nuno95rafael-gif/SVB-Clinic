@@ -22,12 +22,12 @@ export default async function DefinicoesPage() {
     : [{ data: null }, { data: null }];
 
   return (
-    <div className="p-8 max-w-5xl">
+    <div className="p-4 md:p-8 max-w-5xl">
       <h1 className="text-2xl font-semibold mb-6">Definições</h1>
 
       {isAdmin && (
-        <div className="grid grid-cols-3 gap-6">
-          <Card className="col-span-2">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card className="md:col-span-2">
             <CardHeader>
               <CardTitle>Utilizadores</CardTitle>
             </CardHeader>

@@ -41,7 +41,7 @@ export function UserRow({ user, isSelf }: { user: UserProfile; isSelf: boolean }
   if (editing) {
     return (
       <li className="px-5 py-3">
-        <form action={formAction} className="flex items-center gap-3">
+        <form action={formAction} className="flex flex-wrap items-center gap-3">
           <input type="hidden" name="user_id" value={user.id} />
           <Input name="full_name" defaultValue={user.full_name} className="flex-1" required />
           <Select name="role" defaultValue={user.role} disabled={isSelf} className="w-40">

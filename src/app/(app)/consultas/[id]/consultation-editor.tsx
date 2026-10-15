@@ -56,7 +56,7 @@ export function ConsultationEditor({
   const router = useRouter();
 
   return (
-    <div className="p-8 max-w-5xl">
+    <div className="p-4 md:p-8 max-w-5xl">
       <Link
         href={`/pacientes/${patientId}?tab=consultas`}
         className="inline-flex items-center gap-1.5 text-[13px] text-foreground-faint hover:text-foreground"
@@ -254,7 +254,7 @@ function DorSection({
 
   return (
     <SectionShell id="dor" n="02" title="Dor + corpo">
-      <div className="grid grid-cols-[260px_1fr] gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-[260px_1fr] gap-6">
         <Card>
           <CardContent>
             <BodyMap

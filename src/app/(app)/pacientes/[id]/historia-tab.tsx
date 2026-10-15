@@ -40,7 +40,7 @@ export function HistoriaTab({
         <CardHeader>
           <CardTitle>Dados gerais</CardTitle>
         </CardHeader>
-        <CardContent className="grid grid-cols-2 gap-4">
+        <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Field name="motivo_consulta" label="Motivo da consulta" defaultValue={record?.motivo_consulta} />
           <Field name="objetivo_paciente" label="Objetivo do paciente" defaultValue={record?.objetivo_paciente} />
           <Field name="profissao" label="Profissão" defaultValue={record?.profissao} />
@@ -52,7 +52,7 @@ export function HistoriaTab({
         <CardHeader>
           <CardTitle>História clínica</CardTitle>
         </CardHeader>
-        <CardContent className="grid grid-cols-2 gap-4">
+        <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Field name="lesoes_anteriores" label="Lesões anteriores" defaultValue={record?.lesoes_anteriores} />
           <Field name="cirurgias" label="Cirurgias" defaultValue={record?.cirurgias} />
           <Field name="patologias" label="Patologias relevantes" defaultValue={record?.patologias} />

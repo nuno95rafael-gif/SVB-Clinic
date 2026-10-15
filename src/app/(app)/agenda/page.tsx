@@ -73,15 +73,15 @@ export default async function AgendaPage({
   const { prev, next, today } = getNavDates(view, refDate);
 
   return (
-    <div className="p-8">
-      <div className="flex items-center justify-between mb-6">
+    <div className="p-4 md:p-8">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <div>
           <h1 className="text-2xl font-semibold">Agenda</h1>
           <p className="text-sm text-foreground-soft mt-1 capitalize">
             {headerTitle(view, refDate, start, end)}
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <ViewTabs view={view} date={dateStr} />
           <div className="flex items-center gap-2">
             <Link href={`/agenda?view=${view}&date=${toISODate(prev)}`}>

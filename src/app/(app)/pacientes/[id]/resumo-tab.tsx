@@ -14,7 +14,7 @@ export function ResumoTab({
   lastAppointment?: { starts_at: string } | null;
 }) {
   return (
-    <div className="grid grid-cols-2 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       <Card>
         <CardContent>
           <h3 className="text-[13px] font-semibold text-foreground-soft mb-3">Contactos</h3>

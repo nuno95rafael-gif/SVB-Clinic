@@ -13,9 +13,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   ]);
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen flex-col md:flex-row">
       <Sidebar profile={profile} clinics={clinics ?? []} activeClinicId={activeClinicId} />
-      <main className="flex-1 overflow-y-auto bg-background">{children}</main>
+      <main className="min-w-0 flex-1 overflow-y-auto bg-background">{children}</main>
     </div>
   );
 }

@@ -61,7 +61,7 @@ export default async function PacienteDetailPage({
   );
 
   return (
-    <div className="p-8 max-w-5xl">
+    <div className="p-4 md:p-8 max-w-5xl">
       <Link href="/pacientes" className="text-[13px] text-foreground-faint hover:text-foreground">
         ← Pacientes
       </Link>
